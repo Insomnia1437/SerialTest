@@ -35,17 +35,17 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-tags: true
 
       - name: Install Qt
-        uses: jurplel/install-qt-action@v3
+        uses: jurplel/install-qt-action@v4
         with:
           version: '6.5.3'
           target: 'desktop'
           arch: 'win64_msvc2019_64'
-          modules: 'qt5compat'
+          modules: 'qt5compat qtserialport qtconnectivity'
           cache: true
 
       - name: Set up Visual Studio shell
@@ -71,7 +71,7 @@ jobs:
           Compress-Archive -Path ./release/* -DestinationPath ./SerialTest-Windows-x64.zip
 
       - name: Upload Windows Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: SerialTest-Windows-x64
           path: ./SerialTest-Windows-x64.zip
@@ -80,21 +80,21 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install Qt
-        uses: jurplel/install-qt-action@v3
+        uses: jurplel/install-qt-action@v4
         with:
           version: '6.5.3'
           target: 'desktop'
           arch: 'clang_64'
-          modules: 'qt5compat'
+          modules: 'qt5compat qtserialport qtconnectivity'
           cache: true
 
       - name: Build
         run: |
           mkdir build && cd build
-          qmake -r ../src/SerialTest.pro CONFIG+=app_bundle
+          qmake -r ../src/SerialTest.pro CONFIG+=app_bundle CONFIG+=sdk_no_version_check
           make -j$(sysctl -n hw.ncpu)
 
       - name: Package
@@ -103,7 +103,7 @@ jobs:
           mv build/SerialTest.dmg ./SerialTest-macOS.dmg
 
       - name: Upload macOS Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: SerialTest-macOS
           path: ./SerialTest-macOS.dmg
@@ -112,7 +112,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install dependencies
         run: |
@@ -120,12 +120,12 @@ jobs:
           sudo apt-get install -y build-essential libgl1-mesa-dev libxkbcommon-dev libegl1-mesa-dev
 
       - name: Install Qt
-        uses: jurplel/install-qt-action@v3
+        uses: jurplel/install-qt-action@v4
         with:
           version: '6.5.3'
           target: 'desktop'
           arch: 'gcc_64'
-          modules: 'qt5compat'
+          modules: 'qt5compat qtserialport qtconnectivity'
           cache: true
 
       - name: Build
@@ -142,7 +142,7 @@ jobs:
           tar -czf SerialTest-Linux-x86_64.tar.gz release/
 
       - name: Upload Linux Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: SerialTest-Linux-x86_64
           path: ./SerialTest-Linux-x86_64.tar.gz
@@ -162,21 +162,21 @@ jobs:
           fi
 
       - name: Download Windows Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: SerialTest-Windows-x64
           path: .
           merge-multiple: true
 
       - name: Download macOS Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: SerialTest-macOS
           path: .
           merge-multiple: true
 
       - name: Download Linux Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: SerialTest-Linux-x86_64
           path: .
@@ -189,7 +189,7 @@ jobs:
           mv SerialTest-Linux-x86_64.tar.gz SerialTest-Linux-x86_64-${{ env.RELEASE_TAG }}.tar.gz
 
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ env.RELEASE_TAG }}
           name: Release ${{ env.RELEASE_TAG }}
