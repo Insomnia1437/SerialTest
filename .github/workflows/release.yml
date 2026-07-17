@@ -35,7 +35,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-tags: true
 
@@ -47,6 +47,7 @@ jobs:
           arch: 'win64_msvc2022_64'
           modules: 'qt5compat qtserialport qtconnectivity'
           cache: true
+          aqtversion: 'git+https://github.com/miurahr/aqtinstall.git'
 
       - name: Set up Visual Studio shell
         uses: ilammy/msvc-dev-cmd@v1
@@ -71,7 +72,7 @@ jobs:
           Compress-Archive -Path ./release/* -DestinationPath ./SerialTest-Windows-x64.zip
 
       - name: Upload Windows Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: SerialTest-Windows-x64
           path: ./SerialTest-Windows-x64.zip
@@ -80,7 +81,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
@@ -90,6 +91,7 @@ jobs:
           arch: 'clang_64'
           modules: 'qt5compat qtserialport qtconnectivity'
           cache: true
+          aqtversion: 'git+https://github.com/miurahr/aqtinstall.git'
 
       - name: Build
         run: |
@@ -103,7 +105,7 @@ jobs:
           mv build/SerialTest.dmg ./SerialTest-macOS.dmg
 
       - name: Upload macOS Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: SerialTest-macOS
           path: ./SerialTest-macOS.dmg
@@ -112,7 +114,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install dependencies
         run: |
@@ -127,6 +129,7 @@ jobs:
           arch: 'gcc_64'
           modules: 'qt5compat qtserialport qtconnectivity'
           cache: true
+          aqtversion: 'git+https://github.com/miurahr/aqtinstall.git'
 
       - name: Build
         run: |
@@ -142,7 +145,7 @@ jobs:
           tar -czf SerialTest-Linux-x86_64.tar.gz release/
 
       - name: Upload Linux Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: SerialTest-Linux-x86_64
           path: ./SerialTest-Linux-x86_64.tar.gz
@@ -162,21 +165,21 @@ jobs:
           fi
 
       - name: Download Windows Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: SerialTest-Windows-x64
           path: .
           merge-multiple: true
 
       - name: Download macOS Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: SerialTest-macOS
           path: .
           merge-multiple: true
 
       - name: Download Linux Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: SerialTest-Linux-x86_64
           path: .
