@@ -30,6 +30,10 @@ on:
 permissions:
   contents: write
 
+env:
+  QT_VERSION: '6.11.1'
+  QT_MODULES: 'qt5compat qtserialport qtconnectivity'
+
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -39,17 +43,20 @@ jobs:
         with:
           fetch-tags: true
 
-      - name: Install aqt with Qt 6.11 support
-        run: pip install --no-build-isolation git+https://github.com/miurahr/aqtinstall.git
-
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.11.1'
-          target: 'desktop'
-          arch: 'win64_msvc2022_64'
-          modules: 'qt5compat qtserialport qtconnectivity'
-          cache: true
+      - name: Install Qt (via aqt with Qt 6.11 fix)
+        shell: pwsh
+        run: |
+          # Install aqt with Qt 6.11 directory structure fix (PR#1000)
+          pip install "git+https://github.com/miurahr/aqtinstall.git@refs/pull/1000/head" --quiet
+          $qtDir = "C:\Qt"
+          python -m aqt install-qt windows desktop $env:QT_VERSION win64_msvc2022_64 `
+            --outputdir $qtDir `
+            --modules $env:QT_MODULES
+          # Add Qt to PATH
+          $qtBin = "$qtDir\$env:QT_VERSION\msvc2022_64\bin"
+          echo "$qtBin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "Qt6_DIR=$qtDir\$env:QT_VERSION\msvc2022_64\lib\cmake\Qt6" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "QT_ROOT_DIR=$qtDir\$env:QT_VERSION\msvc2022_64" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Set up Visual Studio shell
         uses: ilammy/msvc-dev-cmd@v1
@@ -63,6 +70,7 @@ jobs:
           nmake -f Makefile.Release
 
       - name: Copy DLLs and Package
+        shell: pwsh
         run: |
           cd ./release
           windeployqt ./SerialTest.exe
@@ -85,17 +93,19 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v5
 
-      - name: Install aqt with Qt 6.11 support
-        run: pip install --no-build-isolation git+https://github.com/miurahr/aqtinstall.git
-
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.11.1'
-          target: 'desktop'
-          arch: 'clang_64'
-          modules: 'qt5compat qtserialport qtconnectivity'
-          cache: true
+      - name: Install Qt (via aqt with Qt 6.11 fix)
+        run: |
+          # Install aqt with Qt 6.11 directory structure fix (PR#1000)
+          pip install "git+https://github.com/miurahr/aqtinstall.git@refs/pull/1000/head" --quiet --break-system-packages || \
+            pip install "git+https://github.com/miurahr/aqtinstall.git@refs/pull/1000/head" --quiet
+          QT_DIR="$HOME/Qt"
+          python -m aqt install-qt mac desktop ${QT_VERSION} clang_64 \
+            --outputdir "$QT_DIR" \
+            --modules ${QT_MODULES}
+          QT_BIN="$QT_DIR/${QT_VERSION}/macos/bin"
+          echo "$QT_BIN" >> $GITHUB_PATH
+          echo "Qt6_DIR=$QT_DIR/${QT_VERSION}/macos/lib/cmake/Qt6" >> $GITHUB_ENV
+          echo "QT_ROOT_DIR=$QT_DIR/${QT_VERSION}/macos" >> $GITHUB_ENV
 
       - name: Build
         run: |
@@ -120,22 +130,24 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v5
 
-      - name: Install dependencies
+      - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential libgl1-mesa-dev libxkbcommon-dev libegl1-mesa-dev
 
-      - name: Install aqt with Qt 6.11 support
-        run: pip install --no-build-isolation git+https://github.com/miurahr/aqtinstall.git
-
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.11.1'
-          target: 'desktop'
-          arch: 'gcc_64'
-          modules: 'qt5compat qtserialport qtconnectivity'
-          cache: true
+      - name: Install Qt (via aqt with Qt 6.11 fix)
+        run: |
+          # Install aqt with Qt 6.11 directory structure fix (PR#1000)
+          pip install "git+https://github.com/miurahr/aqtinstall.git@refs/pull/1000/head" --quiet
+          QT_DIR="$HOME/Qt"
+          python -m aqt install-qt linux desktop ${QT_VERSION} gcc_64 \
+            --outputdir "$QT_DIR" \
+            --modules ${QT_MODULES}
+          QT_BIN="$QT_DIR/${QT_VERSION}/gcc_64/bin"
+          echo "$QT_BIN" >> $GITHUB_PATH
+          echo "Qt6_DIR=$QT_DIR/${QT_VERSION}/gcc_64/lib/cmake/Qt6" >> $GITHUB_ENV
+          echo "QT_ROOT_DIR=$QT_DIR/${QT_VERSION}/gcc_64" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$QT_DIR/${QT_VERSION}/gcc_64/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
       - name: Build
         run: |
@@ -162,7 +174,6 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Determine Release Tag
-        id: tag
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "RELEASE_TAG=${{ inputs.tag_name }}" >> $GITHUB_ENV
