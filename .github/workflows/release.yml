@@ -1,0 +1,203 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release Tag (e.g. v0.1.0)'
+        required: true
+        type: string
+        default: 'v0.1.0'
+      draft:
+        description: 'Create draft release'
+        required: false
+        type: boolean
+        default: false
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-tags: true
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.5.3'
+          target: 'desktop'
+          arch: 'win64_msvc2019_64'
+          modules: 'qt5compat'
+          cache: true
+
+      - name: Set up Visual Studio shell
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Build
+        shell: cmd
+        run: |
+          qmake -r ./src/SerialTest.pro
+          nmake -f Makefile.Release
+
+      - name: Copy DLLs and Package
+        run: |
+          cd ./release
+          windeployqt ./SerialTest.exe
+          python ../pack/find_dlls.py ./SerialTest.exe
+          Copy-Item -Path "../README.md" -Destination "." -ErrorAction SilentlyContinue
+          Copy-Item -Path "../LICENSE.MIT" -Destination "." -ErrorAction SilentlyContinue
+          Copy-Item -Path "../LICENSE.GPL" -Destination "." -ErrorAction SilentlyContinue
+          cd ..
+          Compress-Archive -Path ./release/* -DestinationPath ./SerialTest-Windows-x64.zip
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SerialTest-Windows-x64
+          path: ./SerialTest-Windows-x64.zip
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.5.3'
+          target: 'desktop'
+          arch: 'clang_64'
+          modules: 'qt5compat'
+          cache: true
+
+      - name: Build
+        run: |
+          mkdir build && cd build
+          qmake -r ../src/SerialTest.pro CONFIG+=app_bundle
+          make -j$(sysctl -n hw.ncpu)
+
+      - name: Package
+        run: |
+          macdeployqt build/SerialTest.app -dmg
+          mv build/SerialTest.dmg ./SerialTest-macOS.dmg
+
+      - name: Upload macOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SerialTest-macOS
+          path: ./SerialTest-macOS.dmg
+
+  build-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libgl1-mesa-dev libxkbcommon-dev libegl1-mesa-dev
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.5.3'
+          target: 'desktop'
+          arch: 'gcc_64'
+          modules: 'qt5compat'
+          cache: true
+
+      - name: Build
+        run: |
+          mkdir build && cd build
+          qmake ../src/SerialTest.pro
+          make -j$(nproc)
+
+      - name: Package
+        run: |
+          mkdir -p release
+          cp build/SerialTest release/
+          cp README.md LICENSE.MIT LICENSE.GPL release/ 2>/dev/null || true
+          tar -czf SerialTest-Linux-x86_64.tar.gz release/
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SerialTest-Linux-x86_64
+          path: ./SerialTest-Linux-x86_64.tar.gz
+
+  publish-release:
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Determine Release Tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "RELEASE_TAG=${{ inputs.tag_name }}" >> $GITHUB_ENV
+          else
+            echo "RELEASE_TAG=${{ github.ref_name }}" >> $GITHUB_ENV
+          fi
+
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: SerialTest-Windows-x64
+          path: .
+          merge-multiple: true
+
+      - name: Download macOS Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: SerialTest-macOS
+          path: .
+          merge-multiple: true
+
+      - name: Download Linux Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: SerialTest-Linux-x86_64
+          path: .
+          merge-multiple: true
+
+      - name: Rename artifacts with version suffix
+        run: |
+          mv SerialTest-Windows-x64.zip SerialTest-Windows-x64-${{ env.RELEASE_TAG }}.zip
+          mv SerialTest-macOS.dmg SerialTest-macOS-${{ env.RELEASE_TAG }}.dmg
+          mv SerialTest-Linux-x86_64.tar.gz SerialTest-Linux-x86_64-${{ env.RELEASE_TAG }}.tar.gz
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: Release ${{ env.RELEASE_TAG }}
+          draft: ${{ github.event.inputs.draft || false }}
+          prerelease: ${{ github.event.inputs.prerelease || false }}
+          files: |
+            SerialTest-Windows-x64-${{ env.RELEASE_TAG }}.zip
+            SerialTest-macOS-${{ env.RELEASE_TAG }}.dmg
+            SerialTest-Linux-x86_64-${{ env.RELEASE_TAG }}.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

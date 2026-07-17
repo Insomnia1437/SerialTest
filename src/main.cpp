@@ -1,4 +1,4 @@
-﻿#include "mainwindow.h"
+#include "mainwindow.h"
 #include "mysettings.h"
 
 #include <QApplication>
@@ -23,7 +23,6 @@ int main(int argc, char *argv[])
     delete pluginDir;
 #endif
 
-    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication a(argc, argv);
 
 #ifdef Q_OS_ANDROID
@@ -90,12 +89,12 @@ int main(int argc, char *argv[])
     {
         // set language by system locale
         QLocale locale = QLocale::system();
-        QLocale::Country countryOrRegion = locale.country();
-        if(locale.language() == QLocale::Chinese || countryOrRegion == QLocale::China)
+        QLocale::Territory territory = locale.territory();
+        if(locale.language() == QLocale::Chinese || territory == QLocale::China)
             languageSet = translator.load(":/i18n/SerialTest_zh_CN.qm");
-        else if(locale.language() == QLocale::Chinese || countryOrRegion == QLocale::Taiwan)
+        else if(locale.language() == QLocale::Chinese || territory == QLocale::Taiwan)
             languageSet = translator.load(":/i18n/SerialTest_zh_TW.qm");
-        else if(countryOrRegion == QLocale::Norway)
+        else if(territory == QLocale::Norway)
             languageSet = translator.load(":/i18n/SerialTest_nb_NO.qm");
     }
     if(languageSet)

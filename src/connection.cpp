@@ -1,7 +1,17 @@
-﻿#include "connection.h"
+#include "connection.h"
 
 #include <QNetworkDatagram>
 #include <QMetaEnum>
+
+#define BT_NO_SOCKET_ERROR QBluetoothSocket::SocketError::NoSocketError
+#define BT_NETWORK_ERROR QBluetoothSocket::SocketError::NetworkError
+#define BT_OPERATION_ERROR QBluetoothSocket::SocketError::OperationError
+#define BT_UUID_SERIAL_PORT QBluetoothUuid::ServiceClassUuid::SerialPort
+#define BT_UUID_PUBLIC_BROWSE_GROUP QBluetoothUuid::ServiceClassUuid::PublicBrowseGroup
+#define BT_UUID_L2CAP QBluetoothUuid::ProtocolUuid::L2cap
+#define BT_UUID_RFCOMM QBluetoothUuid::ProtocolUuid::Rfcomm
+#define BT_UUID_CLIENT_CHARACTERISTIC_CONFIGURATION QBluetoothUuid::DescriptorType::ClientCharacteristicConfiguration
+
 
 Connection::Connection(QObject *parent)
     : QObject{parent}
@@ -281,13 +291,9 @@ void Connection::open()
             m_BLERxTxMode = m_currBTArgument.RxCharacteristicUUID == m_currBTArgument.TxCharacteristicUUID ? BLE_1S1C : BLE_1S2C;
         if(m_BLEController != nullptr)
             m_BLEController->deleteLater();
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-        m_BLEController = new QLowEnergyController(m_currBTArgument.deviceAddress, m_currBTArgument.localAdapterAddress);
-#else
-        m_BLEController = QLowEnergyController::createCentral(m_currBTArgument.deviceAddress, m_currBTArgument.localAdapterAddress);
-#endif
+        m_BLEController = QLowEnergyController::createCentral(QBluetoothDeviceInfo(m_currBTArgument.deviceAddress, QString(), 0), m_currBTArgument.localAdapterAddress, this);
         connect(m_BLEController, &QLowEnergyController::connected, m_BLEController, &QLowEnergyController::discoverServices);
-        connect(m_BLEController, QOverload<QLowEnergyController::Error>::of(&QLowEnergyController::error), this, &Connection::onErrorOccurred);
+        connect(m_BLEController, &QLowEnergyController::errorOccurred, this, &Connection::onErrorOccurred);
         connect(m_BLEController, &QLowEnergyController::serviceDiscovered, this, &Connection::BLEC_onServiceDiscovered);
         m_BLEDiscoveredServices.clear();
         m_BLEController->connectToDevice();
@@ -396,7 +402,7 @@ void Connection::close(bool forced)
         m_BLETxCharacteristicValid = false;
         if(m_BLERxTxService != nullptr)
         {
-            QLowEnergyDescriptor desc = m_BLERxTxService->characteristic(m_currBTArgument.RxCharacteristicUUID).descriptor(QBluetoothUuid::ClientCharacteristicConfiguration);
+            QLowEnergyDescriptor desc = m_BLERxTxService->characteristic(m_currBTArgument.RxCharacteristicUUID).descriptor(BT_UUID_CLIENT_CHARACTERISTIC_CONFIGURATION);
             m_BLERxTxService->writeDescriptor(desc, QByteArray::fromHex("0000"));
             m_BLERxTxService->deleteLater();
             m_BLERxTxService = nullptr;
@@ -451,14 +457,14 @@ void Connection::updateSignalSlot()
     else if(m_type == BT_Client)
     {
         m_lastReadyReadConn = connect(m_BTSocket, &QIODevice::readyRead, this, &Connection::onReadyRead);
-        m_lastOnErrorConn = connect(m_BTSocket, QOverload<QBluetoothSocket::SocketError>::of(&QBluetoothSocket::error), this, &Connection::onErrorOccurred);
+        m_lastOnErrorConn = connect(m_BTSocket, &QBluetoothSocket::errorOccurred, this, &Connection::onErrorOccurred);
         m_lastOnConnectedConn = connect(m_BTSocket, &QBluetoothSocket::connected, this, &Connection::onConnected);
         m_lastOnDisconnectedConn = connect(m_BTSocket, &QBluetoothSocket::disconnected, this, &Connection::onDisconnected);
     }
     else if(m_type == BT_Server)
     {
         // readyRead(), disconnected() is connected in onClientConnected()
-        m_lastOnErrorConn = connect(m_BTServer, QOverload<QBluetoothServer::Error>::of(&QBluetoothServer::error), this, &Connection::onErrorOccurred);
+        m_lastOnErrorConn = connect(m_BTServer, &QBluetoothServer::errorOccurred, this, &Connection::onErrorOccurred);
         m_lastOnConnectedConn = connect(m_BTServer, &QBluetoothServer::newConnection, this, &Connection::Server_onClientConnected);
     }
     else if(m_type == BLE_Central)
@@ -472,11 +478,7 @@ void Connection::updateSignalSlot()
     else if(m_type == TCP_Client)
     {
         m_lastReadyReadConn = connect(m_TCPSocket, &QIODevice::readyRead, this, &Connection::onReadyRead);
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-        m_lastOnErrorConn = connect(m_TCPSocket, QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error), this, &Connection::onErrorOccurred);
-#else
         m_lastOnErrorConn = connect(m_TCPSocket, &QAbstractSocket::errorOccurred, this, &Connection::onErrorOccurred);
-#endif
         m_lastOnConnectedConn = connect(m_TCPSocket, &QAbstractSocket::connected, this, &Connection::onConnected);
         m_lastOnDisconnectedConn = connect(m_TCPSocket, &QAbstractSocket::disconnected, this, &Connection::onDisconnected);
     }
@@ -489,11 +491,7 @@ void Connection::updateSignalSlot()
     else if(m_type == UDP)
     {
         m_lastReadyReadConn = connect(m_UDPSocket, &QIODevice::readyRead, this, &Connection::onReadyRead);
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-        m_lastOnErrorConn = connect(m_UDPSocket, QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error), this, &Connection::onErrorOccurred);
-#else
         m_lastOnErrorConn = connect(m_UDPSocket, &QAbstractSocket::errorOccurred, this, &Connection::onErrorOccurred);
-#endif
         m_lastOnConnectedConn = connect(m_UDPSocket, &QAbstractSocket::connected, this, &Connection::onConnected);
         m_lastOnDisconnectedConn = connect(m_UDPSocket, &QAbstractSocket::disconnected, this, &Connection::onDisconnected);
     }
@@ -504,7 +502,7 @@ void Connection::BTServer_initServiceInfo()
     // call it once
     QBluetoothServiceInfo::Sequence profileSequence;
     QBluetoothServiceInfo::Sequence classId;
-    classId << QVariant::fromValue(QBluetoothUuid(QBluetoothUuid::SerialPort));
+    classId << QVariant::fromValue(QBluetoothUuid(BT_UUID_SERIAL_PORT));
     classId << QVariant::fromValue(quint16(0x100));
     profileSequence.append(QVariant::fromValue(classId));
     m_RfcommServiceInfo.setAttribute(QBluetoothServiceInfo::BluetoothProfileDescriptorList, profileSequence);
@@ -512,7 +510,7 @@ void Connection::BTServer_initServiceInfo()
     classId.clear();
     // Add user defined UUID there
     // classId << QVariant::fromValue(QBluetoothUuid(serialServiceUuid));
-    classId << QVariant::fromValue(QBluetoothUuid(QBluetoothUuid::SerialPort));
+    classId << QVariant::fromValue(QBluetoothUuid(BT_UUID_SERIAL_PORT));
 
     m_RfcommServiceInfo.setAttribute(QBluetoothServiceInfo::ServiceClassIds, classId);
 
@@ -525,12 +523,12 @@ void Connection::BTServer_initServiceInfo()
     //! [Service UUID set]
     // use QBluetoothUuid::SerialPort there
     // m_RfcommServiceInfo.setServiceUuid(QBluetoothUuid(serialServiceUuid));
-    m_RfcommServiceInfo.setServiceUuid(QBluetoothUuid::SerialPort);
+    m_RfcommServiceInfo.setServiceUuid(QBluetoothUuid(BT_UUID_SERIAL_PORT));
     //! [Service UUID set]
 
     //! [Service Discoverability]
     QBluetoothServiceInfo::Sequence publicBrowse;
-    publicBrowse << QVariant::fromValue(QBluetoothUuid(QBluetoothUuid::PublicBrowseGroup));
+    publicBrowse << QVariant::fromValue(QBluetoothUuid(BT_UUID_PUBLIC_BROWSE_GROUP));
     m_RfcommServiceInfo.setAttribute(QBluetoothServiceInfo::BrowseGroupList,
                                      publicBrowse);
     //! [Service Discoverability]
@@ -542,10 +540,10 @@ void Connection::BTServer_updateServicePort()
     //! [Protocol descriptor list]
     QBluetoothServiceInfo::Sequence protocolDescriptorList;
     QBluetoothServiceInfo::Sequence protocol;
-    protocol << QVariant::fromValue(QBluetoothUuid(QBluetoothUuid::L2cap));
+    protocol << QVariant::fromValue(QBluetoothUuid(BT_UUID_L2CAP));
     protocolDescriptorList.append(QVariant::fromValue(protocol));
     protocol.clear();
-    protocol << QVariant::fromValue(QBluetoothUuid(QBluetoothUuid::Rfcomm))
+    protocol << QVariant::fromValue(QBluetoothUuid(BT_UUID_RFCOMM))
              << QVariant::fromValue(quint8(m_BTServer->serverPort()));
     protocolDescriptorList.append(QVariant::fromValue(protocol));
     m_RfcommServiceInfo.setAttribute(QBluetoothServiceInfo::ProtocolDescriptorList,
@@ -613,7 +611,7 @@ void Connection::onErrorOccurred()
         else if(error == QSerialPort::NoError)
             ;
         // serialport still works
-        else if(error == QSerialPort::FramingError || error == QSerialPort::ParityError || error == QSerialPort::BreakConditionError || error == QSerialPort::UnsupportedOperationError || error == QSerialPort::TimeoutError || error == QSerialPort::ReadError || error == QSerialPort::WriteError)
+        else if(error == QSerialPort::UnsupportedOperationError || error == QSerialPort::TimeoutError || error == QSerialPort::ReadError || error == QSerialPort::WriteError)
             ;
         // doesn't work, but don't close it
         else if(error == QSerialPort::NotOpenError)
@@ -628,16 +626,16 @@ void Connection::onErrorOccurred()
     {
         QBluetoothSocket::SocketError error;
         error = m_BTSocket->error();
-        if(m_isCollectingErrorString && error != QBluetoothSocket::NoSocketError)
+        if(m_isCollectingErrorString && error != BT_NO_SOCKET_ERROR)
             m_errorStringList += m_BTSocket->errorString();
         qDebug() << "BT Socket Error:" << error << m_BTSocket->errorString();
         qDebug() << "State:" << m_BTSocket->state();
 
         // no error
-        if(error == QBluetoothSocket::NoSocketError)
+        if(error == BT_NO_SOCKET_ERROR)
             ;
         // keep the statement in Server_onClientErrorOccurred() in same
-        else if(error == QBluetoothSocket::NetworkError || error == QBluetoothSocket::OperationError)
+        else if(error == BT_NETWORK_ERROR || error == BT_OPERATION_ERROR)
             ;
         else
         {
@@ -885,7 +883,7 @@ void Connection::Server_onClientConnected()
         changeState(Connected);
         connect(socket, &QBluetoothSocket::readyRead, this, &Connection::onReadyRead);
         connect(socket, &QBluetoothSocket::disconnected, this, &Connection::Server_onClientDisconnected);
-        connect(socket, QOverload<QBluetoothSocket::SocketError>::of(&QBluetoothSocket::error), this, &Connection::Server_onClientErrorOccurred);
+        connect(socket, &QBluetoothSocket::errorOccurred, this, &Connection::Server_onClientErrorOccurred);
         m_BTConnectedClients.append(socket);
         m_BTTxClients.append(socket);
         emit BT_clientConnected();
@@ -899,11 +897,7 @@ void Connection::Server_onClientConnected()
         changeState(Connected);
         connect(socket, &QTcpSocket::readyRead, this, &Connection::onReadyRead);
         connect(socket, &QTcpSocket::disconnected, this, &Connection::Server_onClientDisconnected);
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-        connect(socket, QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error), this, &Connection::onErrorOccurred);
-#else
         connect(socket, &QAbstractSocket::errorOccurred, this, &Connection::onErrorOccurred);
-#endif
         m_TCPConnectedClients.append(socket);
         m_TCPTxClients.append(socket);
         emit TCP_clientConnected();
@@ -969,15 +963,15 @@ void Connection::Server_onClientErrorOccurred()
         QBluetoothSocket *socket = qobject_cast<QBluetoothSocket *>(sender());
         QBluetoothSocket::SocketError socketError;
         socketError = socket->error();
-        if(m_isCollectingErrorString && socketError != QBluetoothSocket::NoSocketError)
+        if(m_isCollectingErrorString && socketError != BT_NO_SOCKET_ERROR)
             m_errorStringList += socket->errorString();
         qDebug() << "BT Socket Error:" << socketError << socket->errorString();
         qDebug() << "State:" << socket->state();
 
         // no error
-        if(socketError == QBluetoothSocket::NoSocketError)
+        if(socketError == BT_NO_SOCKET_ERROR)
             ;
-        else if(socketError == QBluetoothSocket::NetworkError || socketError == QBluetoothSocket::OperationError)
+        else if(socketError == BT_NETWORK_ERROR || socketError == BT_OPERATION_ERROR)
             ;
         else
         {
@@ -1245,7 +1239,7 @@ void Connection::BLEC_onServiceDetailDiscovered(QLowEnergyService::ServiceState 
     auto service = qobject_cast<QLowEnergyService*>(sender());
     if(newState == QLowEnergyService::InvalidService)
         deleteService = true;
-    else if(newState == QLowEnergyService::ServiceDiscovered)
+    else if(newState == QLowEnergyService::RemoteServiceDiscovered)
     {
         deleteService = true;
         // add included services
@@ -1342,15 +1336,15 @@ void Connection::BLEC_onServiceDetailDiscovered(QLowEnergyService::ServiceState 
             if(m_BLERxCharacteristicValid && m_BLETxCharacteristicValid)
             {
                 // Rx
-                connect(m_BLERxTxService, QOverload<QLowEnergyService::ServiceError>::of(&QLowEnergyService::error), this, &Connection::onErrorOccurred);
+                connect(m_BLERxTxService, &QLowEnergyService::errorOccurred, this, &Connection::onErrorOccurred);
                 connect(m_BLERxTxService, &QLowEnergyService::characteristicChanged, this, &Connection::BLEC_onDataArrived);
                 connect(m_BLERxTxService, &QLowEnergyService::characteristicRead, this, &Connection::BLEC_onDataArrived);
-                QLowEnergyDescriptor desc = m_BLERxTxService->characteristic(m_currBTArgument.RxCharacteristicUUID).descriptor(QBluetoothUuid::ClientCharacteristicConfiguration);
+                QLowEnergyDescriptor desc = m_BLERxTxService->characteristic(m_currBTArgument.RxCharacteristicUUID).descriptor(BT_UUID_CLIENT_CHARACTERISTIC_CONFIGURATION);
                 m_BLERxTxService->writeDescriptor(desc, QByteArray::fromHex("0100"));
                 // Tx
                 if(m_BLERxTxMode == BLE_2S2C)
                 {
-                    connect(m_BLETxService, QOverload<QLowEnergyService::ServiceError>::of(&QLowEnergyService::error), this, &Connection::onErrorOccurred);
+                    connect(m_BLETxService, &QLowEnergyService::errorOccurred, this, &Connection::onErrorOccurred);
                     m_BLETxCharacteristic = m_BLETxService->characteristic(m_currBTArgument.TxCharacteristicUUID);
                 }
                 else

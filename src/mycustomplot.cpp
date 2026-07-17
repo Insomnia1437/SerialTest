@@ -1,4 +1,4 @@
-﻿#include "mycustomplot.h"
+#include "mycustomplot.h"
 
 #include <QGesture>
 #include <QGestureEvent>
@@ -60,7 +60,7 @@ bool MyCustomPlot::handlePinchGesture(QPinchGesture* pinchGesture)
         setInteraction(QCP::iRangeDrag, false);
 
         QPointF pinchCenter = mapFromGlobal(pinchGesture->centerPoint().toPoint());
-        foreach(QCPLayerable* candidate, layerableListAt(pinchCenter, false))
+        for(QCPLayerable* candidate : layerableListAt(pinchCenter, false))
         {
             QCPAxis* axis = qobject_cast<QCPAxis*>(candidate);
             QCPAxisRect* rect = qobject_cast<QCPAxisRect*>(candidate);
@@ -85,14 +85,14 @@ bool MyCustomPlot::handlePinchGesture(QPinchGesture* pinchGesture)
                 Qt::Orientations rangeZoom = rect->rangeZoom();
                 if(rangeZoom.testFlag(Qt::Horizontal) && pinchOrientations.testFlag(Qt::Horizontal))
                 {
-                    foreach(QCPAxis* it, rect->rangeZoomAxes(Qt::Horizontal))
+                    for(QCPAxis* it : rect->rangeZoomAxes(Qt::Horizontal))
                     {
                         m_axisScaleCenterList.insert(it, it->pixelToCoord(pinchCenter.x()));
                     }
                 }
                 if(rangeZoom.testFlag(Qt::Vertical) && pinchOrientations.testFlag(Qt::Vertical))
                 {
-                    foreach(QCPAxis* it, rect->rangeZoomAxes(Qt::Vertical))
+                    for(QCPAxis* it : rect->rangeZoomAxes(Qt::Vertical))
                     {
                         m_axisScaleCenterList.insert(it, it->pixelToCoord(pinchCenter.y()));
                     }

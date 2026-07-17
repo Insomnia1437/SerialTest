@@ -1,4 +1,4 @@
-﻿#include "devicetab.h"
+#include "devicetab.h"
 #include "ui_devicetab.h"
 #include "util.h"
 
@@ -6,6 +6,8 @@
 #include <QMessageBox>
 #include <QBluetoothUuid>
 #include <QBluetoothLocalDevice>
+
+#define BT_UUID_SERIAL_PORT QBluetoothUuid::ServiceClassUuid::SerialPort
 #include <QNetworkInterface>
 #include <QTreeWidgetItem>
 #include <QScroller>
@@ -678,12 +680,12 @@ void DeviceTab::on_openButton_clicked()
         if(ui->BTClient_serviceUUIDBox->isChecked() && !ui->BTClient_serviceUUIDEdit->text().isEmpty())
             arg.RxServiceUUID = String2UUID(ui->BTClient_serviceUUIDEdit->text());
         else
-            arg.RxServiceUUID = QBluetoothUuid::SerialPort;
+            arg.RxServiceUUID = BT_UUID_SERIAL_PORT;
         m_connection->setArgument(arg);
         m_connection->open();
 
         settings->beginGroup(m_historyPrefix["BTClient"]);
-        if(arg.RxServiceUUID == QBluetoothUuid::SerialPort)
+        if(arg.RxServiceUUID == BT_UUID_SERIAL_PORT)
         {
             settings->setValue("UserSpecifiedServiceUUID", false);
         }
@@ -1140,12 +1142,8 @@ void DeviceTab::BTdeviceDiscovered(const QBluetoothDeviceInfo& device)
              << device.rssi()
              << device.majorDeviceClass()
              << device.minorDeviceClass()
-#if QT_VERSION < QT_VERSION_CHECK(5, 12, 0)
-             << device.serviceClasses();
-#else
              << device.serviceClasses()
              << device.manufacturerData();
-#endif
 }
 
 
@@ -1304,13 +1302,13 @@ void DeviceTab::setBTClientDiscoveryAgent(QBluetoothAddress adapterAddress)
     {
         disconnect(BTClient_discoveryAgent, &QBluetoothDeviceDiscoveryAgent::deviceDiscovered, this, &DeviceTab::BTdeviceDiscovered);
         disconnect(BTClient_discoveryAgent, &QBluetoothDeviceDiscoveryAgent::finished, this, &DeviceTab::BTdiscoverFinished);
-        disconnect(BTClient_discoveryAgent, QOverload<QBluetoothDeviceDiscoveryAgent::Error>::of(&QBluetoothDeviceDiscoveryAgent::error), this, &DeviceTab::BTdiscoverFinished);
+        disconnect(BTClient_discoveryAgent, &QBluetoothDeviceDiscoveryAgent::errorOccurred, this, &DeviceTab::BTdiscoverFinished);
         BTClient_discoveryAgent->deleteLater();
     }
     BTClient_discoveryAgent = new QBluetoothDeviceDiscoveryAgent(adapterAddress, this);
     connect(BTClient_discoveryAgent, &QBluetoothDeviceDiscoveryAgent::deviceDiscovered, this, &DeviceTab::BTdeviceDiscovered);
     connect(BTClient_discoveryAgent, &QBluetoothDeviceDiscoveryAgent::finished, this, &DeviceTab::BTdiscoverFinished);
-    connect(BTClient_discoveryAgent, QOverload<QBluetoothDeviceDiscoveryAgent::Error>::of(&QBluetoothDeviceDiscoveryAgent::error), this, &DeviceTab::BTdiscoverFinished);
+    connect(BTClient_discoveryAgent, &QBluetoothDeviceDiscoveryAgent::errorOccurred, this, &DeviceTab::BTdiscoverFinished);
 
 }
 
@@ -1439,13 +1437,9 @@ void DeviceTab::on_BLEC_connectButton_clicked()
         ui->BLEC_UUIDList->clear();
         ui->BLEC_connectButton->setText(tr("Disconnect"));
         ui->BLEC_currAddrLabel->setText(ui->BLEC_currAddrBox->currentText());
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-        m_BLEController = new QLowEnergyController(QBluetoothAddress(ui->BLEC_currAddrBox->currentText()), QBluetoothAddress(ui->BLEC_adapterBox->currentData().toString()));
-#else
-        m_BLEController = QLowEnergyController::createCentral(QBluetoothAddress(ui->BLEC_currAddrBox->currentText()), QBluetoothAddress(ui->BLEC_adapterBox->currentData().toString()));
-#endif
+        m_BLEController = QLowEnergyController::createCentral(QBluetoothDeviceInfo(QBluetoothAddress(ui->BLEC_currAddrBox->currentText()), QString(), 0), QBluetoothAddress(ui->BLEC_adapterBox->currentData().toString()), this);
         connect(m_BLEController, &QLowEnergyController::connected, m_BLEController, &QLowEnergyController::discoverServices);
-        connect(m_BLEController, QOverload<QLowEnergyController::Error>::of(&QLowEnergyController::error), [ = ](QLowEnergyController::Error newError)
+        connect(m_BLEController, &QLowEnergyController::errorOccurred, [ = ](QLowEnergyController::Error newError)
         {
             qDebug() << newError;
         });
@@ -1537,7 +1531,7 @@ void DeviceTab::BLEC_onServiceDetailDiscovered(QLowEnergyService::ServiceState n
     QTreeWidgetItem* parentItem = m_discoveredBLEServices[service->serviceUuid()];
     if(newState == QLowEnergyService::InvalidService)
         service->deleteLater();
-    else if(newState == QLowEnergyService::ServiceDiscovered)
+    else if(newState == QLowEnergyService::RemoteServiceDiscovered)
     {
         // add included services
         const QList<QBluetoothUuid> includedServices = service->includedServices();

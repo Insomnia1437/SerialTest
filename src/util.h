@@ -1,4 +1,4 @@
-﻿#ifndef UTIL_H
+#ifndef UTIL_H
 #define UTIL_H
 
 #include <QString>
@@ -17,7 +17,7 @@ public:
     static QString getValidLocalFilename(const QList<QUrl>& urlList);
 private:
     static const char unescapeTable[];
-    static int unescapeHelper(QStringRef text, int &result, int baseBits);
+    static int unescapeHelper(QStringView text, int &result, int baseBits);
 };
 
 class GestureConverter : public QObject

@@ -3,6 +3,8 @@
 #include "devicetab.h"
 
 #include <QMessageBox>
+#include <QTimer>
+#include <QProcess>
 #include <QStandardPaths>
 #include <QDir>
 #include <QDebug>
@@ -101,6 +103,13 @@ void SettingsTab::initSettings()
     connect(ui->Data_recordDataBox, &QCheckBox::clicked, this, &SettingsTab::savePreference);
     connect(ui->Data_mergeTimestampBox, &QCheckBox::clicked, this, &SettingsTab::savePreference);
     connect(ui->Data_mergeTimestampIntervalBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SettingsTab::savePreference);
+
+    // Apply the saved theme and opacity settings on application startup
+    QTimer::singleShot(0, this, [ = ]()
+    {
+        emit themeChanged(ui->Theme_nameBox->currentData().toString());
+        emit opacityChanged(ui->Opacity_Box->value() / 100.0);
+    });
 }
 
 
@@ -326,6 +335,25 @@ void SettingsTab::on_Lang_setButton_clicked()
     m_settings->setValue("Lang_Name", ui->Lang_nameBox->currentData().toString());
     m_settings->setValue("Lang_Path", ui->Lang_filePathEdit->text());
     m_settings->endGroup();
+    m_settings->sync();
+
+    QMessageBox::StandardButton btn = QMessageBox::question(
+        this, 
+        tr("Restart Required"), 
+        tr("The language changes will take effect after restarting the application.\nWould you like to restart now?"), 
+        QMessageBox::Yes | QMessageBox::No, 
+        QMessageBox::No
+    );
+
+    if (btn == QMessageBox::Yes)
+    {
+#ifdef Q_OS_ANDROID
+        QApplication::closeAllWindows();
+#else
+        QProcess::startDetached(QApplication::applicationFilePath(), QApplication::arguments());
+        QApplication::quit();
+#endif
+    }
 }
 
 
@@ -340,7 +368,6 @@ void SettingsTab::on_Conf_importButton_clicked()
     if(fileName.isEmpty())
         return;
     QSettings newSettings(fileName, QSettings::IniFormat);
-    newSettings.setIniCodec("UTF-8");
 
     if(!newSettings.childGroups().contains("SerialTest"))
     {

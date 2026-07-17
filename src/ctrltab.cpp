@@ -1,4 +1,4 @@
-﻿#include "ctrltab.h"
+#include "ctrltab.h"
 #include "ui_ctrltab.h"
 
 #include "controlitem.h"
@@ -232,9 +232,11 @@ void CtrlTab::dropEvent(QDropEvent *event)
         if(filename.isEmpty())
             return;
         QFile file(filename);
-        file.open(QFile::ReadOnly | QFile::Text);
-        loadCtrlPanel(QString::fromUtf8(file.readAll()));
-        file.close();
+        if (file.open(QFile::ReadOnly | QFile::Text))
+        {
+            loadCtrlPanel(QString::fromUtf8(file.readAll()));
+            file.close();
+        }
     }
 }
 

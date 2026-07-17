@@ -1,4 +1,4 @@
-﻿#include "mysettings.h"
+#include "mysettings.h"
 
 MySettings *MySettings::m_inst = nullptr;
 QSettings *MySettings::m_settings = nullptr;
@@ -8,7 +8,6 @@ bool MySettings::init(QSettings::Format format, const QString &path)
     if(format == QSettings::IniFormat)
     {
         m_settings = new QSettings(path, format);
-        m_settings->setIniCodec("UTF-8");
     }
     else
         m_settings = new QSettings("wh201906", "SerialTest");

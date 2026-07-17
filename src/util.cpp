@@ -1,4 +1,4 @@
-﻿#include "util.h"
+#include "util.h"
 
 #include "QDebug"
 #include <QString>
@@ -9,6 +9,8 @@
 #include <QPlainTextEdit>
 #include <QLineEdit>
 #include <QFileInfo>
+
+#define TEXT_MID_REF(str, pos, len) QStringView(str).mid(pos, len)
 #ifdef Q_OS_ANDROID
 #include <QtAndroid>
 #include <QAndroidJniEnvironment>
@@ -21,7 +23,7 @@ Util::Util()
 
 const char Util::unescapeTable[] = "a\007b\010e\033f\014n\012r\015t\011v\013\\\134\'\047\"\042\?\077";
 
-int Util::unescapeHelper(QStringRef text, int& result, int baseBits)
+int Util::unescapeHelper(QStringView text, int& result, int baseBits)
 {
     int i, n = 0;
     result = 0;
@@ -86,7 +88,7 @@ QByteArray Util::unescape(const QString &text, QTextCodec* codec)
         // 2. \nnn, 1~3 octal digits for a byte
         if(i + 1 < text.size() && text[i + 1] >= '0' && text[i + 1] <= '7')
         {
-            handled = unescapeHelper(text.midRef(i + 1, qMin(3, text.size() - (i + 1))), ch, 3);
+            handled = unescapeHelper(TEXT_MID_REF(text, i + 1, qMin(3, text.size() - (i + 1))), ch, 3);
             i += handled;
             if(handled)
                 result += ch & 0xFF;
@@ -94,7 +96,7 @@ QByteArray Util::unescape(const QString &text, QTextCodec* codec)
         // 3. \xHH, 1~2 hexadecimal digits for a byte
         else if(i + 2 < text.size() && text[i + 1] == 'x')
         {
-            handled = unescapeHelper(text.midRef(i + 2, qMin(2, text.size() - (i + 2))), ch, 4);
+            handled = unescapeHelper(TEXT_MID_REF(text, i + 2, qMin(2, text.size() - (i + 2))), ch, 4);
             if(handled)
             {
                 result += ch & 0xFF;
@@ -106,7 +108,7 @@ QByteArray Util::unescape(const QString &text, QTextCodec* codec)
         else if(i + 5 < text.size() && text[i + 1] == 'u')
         {
             bool isOk;
-            ch = text.midRef(i + 2, 4).toInt(&isOk, 16);
+            ch = TEXT_MID_REF(text, i + 2, 4).toInt(&isOk, 16);
             if(isOk)
             {
                 QChar qch(ch); // treat it like QString with length=1
@@ -180,7 +182,10 @@ bool GestureConverter::eventFilter(QObject *obj, QEvent *event)
         QGesture *ges = ge->gesture(Qt::TapAndHoldGesture);
         if(ges->state() == Qt::GestureFinished)
         {
-            QContextMenuEvent newEvent(QContextMenuEvent::Mouse, ge->mapToGraphicsScene(ges->hotSpot()).toPoint());
+            QWidget *widget = qobject_cast<QWidget*>(obj);
+            QPoint pos = ge->mapToGraphicsScene(ges->hotSpot()).toPoint();
+            QPoint globalPos = widget ? widget->mapToGlobal(pos) : QCursor::pos();
+            QContextMenuEvent newEvent(QContextMenuEvent::Mouse, pos, globalPos);
             QApplication::sendEvent(obj, &newEvent);
         }
     }

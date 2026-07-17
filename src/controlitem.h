@@ -1,8 +1,9 @@
-﻿#ifndef CONTROLITEM_H
+#ifndef CONTROLITEM_H
 #define CONTROLITEM_H
 
 #include <QWidget>
 #include <QJsonObject>
+#include <QTextCodec>
 
 namespace Ui
 {
@@ -44,9 +45,9 @@ private slots:
 
     void on_confButton_clicked();
 
-    void on_prefixBox_stateChanged(int arg1);
+    void on_prefixBox_checkStateChanged(Qt::CheckState arg1);
 
-    void on_suffixBox_stateChanged(int arg1);
+    void on_suffixBox_checkStateChanged(Qt::CheckState arg1);
 
     void on_deleteButton_clicked();
 
@@ -54,13 +55,13 @@ private slots:
 
     void on_suffixTypeBox_currentIndexChanged(int index);
 
-    void on_autoBox_stateChanged(int arg1);
+    void on_autoBox_checkStateChanged(Qt::CheckState arg1);
 
     void on_sendButton_clicked();
 
     void on_sliderEdit_editingFinished();
 
-    void on_hexBox_stateChanged(int arg1);
+    void on_hexBox_checkStateChanged(Qt::CheckState arg1);
 
     void on_slider_actionTriggered(int action);
 

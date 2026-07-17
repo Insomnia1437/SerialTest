@@ -1,4 +1,4 @@
-﻿#include "datatab.h"
+#include "datatab.h"
 #include "util.h"
 #include "ui_datatab.h"
 
@@ -10,6 +10,7 @@
 #include <QSerialPort>
 #include <QDateTime>
 #include <QDebug>
+#include <utility>
 
 DataTab::DataTab(QByteArray* RxBuf, QVector<Metadata>* RxMetadataBuf, QByteArray* TxBuf, QWidget *parent) :
     QWidget(parent),
@@ -66,7 +67,7 @@ void DataTab::initSettings()
     connect(ui->data_suffixTypeBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &DataTab::saveDataPreference);
     connect(ui->data_suffixEdit, &QLineEdit::editingFinished, this, &DataTab::saveDataPreference);
     // this might be changed by the program, so use stateChanged() rather than clicked()
-    connect(ui->data_repeatCheckBox, &QCheckBox::stateChanged, this, &DataTab::saveDataPreference);
+    connect(ui->data_repeatCheckBox, &QCheckBox::checkStateChanged, this, &DataTab::saveDataPreference);
     connect(ui->repeatDelayEdit, &QLineEdit::editingFinished, this, &DataTab::saveDataPreference);
     connect(ui->data_flowDTRBox, &QCheckBox::clicked, this, &DataTab::saveDataPreference);
     connect(ui->data_flowRTSBox, &QCheckBox::clicked, this, &DataTab::saveDataPreference);
@@ -371,7 +372,7 @@ void DataTab::syncReceivedEditWithData()
         if(RxTimestampEnabled)
         {
             ui->receivedEdit->clear();
-            for(const Metadata& item : qAsConst(*RxMetadata))
+            for(const Metadata& item : std::as_const(*RxMetadata))
             {
                 QByteArray dataItem = rawReceivedData->mid(item.pos, item.len);
                 ui->receivedEdit->appendPlainText(stringWithTimestamp(dataItem.toHex(' '), item.timestamp));
@@ -387,7 +388,7 @@ void DataTab::syncReceivedEditWithData()
         if(RxTimestampEnabled)
         {
             ui->receivedEdit->clear();
-            for(const Metadata& item : qAsConst(*RxMetadata))
+            for(const Metadata& item : std::as_const(*RxMetadata))
             {
                 QByteArray dataItem = rawReceivedData->mid(item.pos, item.len);
                 ui->receivedEdit->appendPlainText(stringWithTimestamp(dataCodec->toUnicode(dataItem), item.timestamp));

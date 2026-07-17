@@ -1,19 +1,17 @@
-QT += core gui serialport bluetooth network printsupport
-android {
-    QT += androidextras
+QT += core gui widgets serialport bluetooth network printsupport core5compat
+
+# Qt6 requires C++17, and it is standard for modern configurations
+CONFIG += c++17
+
+macx {
+    QMAKE_MACOSX_DEPLOYMENT_TARGET = 26.0
 }
-
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 win32-msvc*: {
     # For Bluetooth LE in WinRT
-    CONFIG += c++17
     SOURCES += winrtbluetooth.cpp
     HEADERS += winrtbluetooth.h
     LIBS += -lwindowsapp
-} else {
-    CONFIG += c++11
 }
 
 
@@ -88,6 +86,10 @@ TRANSLATIONS += \
 
 RC_ICONS = icon/icon.ico
 ICON = icon/icon.icns
+
+macx {
+    QMAKE_INFO_PLIST = $$PWD/Info.plist
+}
 
 # Rules for deployment.
 qnx {

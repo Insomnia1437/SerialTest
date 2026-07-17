@@ -1,4 +1,4 @@
-﻿#include "controlitem.h"
+#include "controlitem.h"
 #include "ui_controlitem.h"
 #include "util.h"
 
@@ -12,8 +12,8 @@ ControlItem::ControlItem(Type type, QWidget *parent) :
 {
     ui->setupUi(this);
 
-    on_prefixBox_stateChanged(Qt::Unchecked);
-    on_suffixBox_stateChanged(Qt::Unchecked);
+    on_prefixBox_checkStateChanged(Qt::Unchecked);
+    on_suffixBox_checkStateChanged(Qt::Unchecked);
 
     ui->confGrp->hide();
 
@@ -41,8 +41,8 @@ void ControlItem::initUI()
     on_stepEdit_editingFinished();
     on_prefixTypeBox_currentIndexChanged(ui->prefixTypeBox->currentIndex());
     on_suffixTypeBox_currentIndexChanged(ui->suffixTypeBox->currentIndex());
-    on_hexBox_stateChanged(ui->hexBox->checkState());
-    on_autoBox_stateChanged(ui->autoBox->checkState());
+    on_hexBox_checkStateChanged(ui->hexBox->checkState());
+    on_autoBox_checkStateChanged(ui->autoBox->checkState());
 }
 
 ControlItem::~ControlItem()
@@ -122,14 +122,14 @@ void ControlItem::on_confButton_clicked()
 }
 
 
-void ControlItem::on_prefixBox_stateChanged(int arg1)
+void ControlItem::on_prefixBox_checkStateChanged(Qt::CheckState arg1)
 {
     Q_UNUSED(arg1)
     on_prefixTypeBox_currentIndexChanged(ui->prefixTypeBox->currentIndex());
 }
 
 
-void ControlItem::on_suffixBox_stateChanged(int arg1)
+void ControlItem::on_suffixBox_checkStateChanged(Qt::CheckState arg1)
 {
     Q_UNUSED(arg1)
     on_suffixTypeBox_currentIndexChanged(ui->suffixTypeBox->currentIndex());
@@ -158,20 +158,20 @@ void ControlItem::on_suffixTypeBox_currentIndexChanged(int index)
 }
 
 
-void ControlItem::on_autoBox_stateChanged(int arg1)
+void ControlItem::on_autoBox_checkStateChanged(Qt::CheckState arg1)
 {
     ui->sendButton->setVisible(arg1 != Qt::Checked);
     if(arg1 == Qt::Checked)
     {
         connect(ui->slider, &QSlider::sliderReleased, this, &ControlItem::onSliderReleased);
-        connect(ui->checkBox, &QCheckBox::stateChanged, this, &ControlItem::on_sendButton_clicked);
-        connect(ui->spinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &ControlItem::on_sendButton_clicked);
+        connect(ui->checkBox, &QCheckBox::checkStateChanged, this, &ControlItem::on_sendButton_clicked);
+        connect(ui->spinBox, &QDoubleSpinBox::valueChanged, this, &ControlItem::on_sendButton_clicked);
     }
     else
     {
         disconnect(ui->slider, &QSlider::sliderReleased, this, &ControlItem::onSliderReleased);
-        disconnect(ui->checkBox, &QCheckBox::stateChanged, this, &ControlItem::on_sendButton_clicked);
-        disconnect(ui->spinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &ControlItem::on_sendButton_clicked);
+        disconnect(ui->checkBox, &QCheckBox::checkStateChanged, this, &ControlItem::on_sendButton_clicked);
+        disconnect(ui->spinBox, &QDoubleSpinBox::valueChanged, this, &ControlItem::on_sendButton_clicked);
     }
 }
 
@@ -259,7 +259,7 @@ void ControlItem::on_sliderEdit_editingFinished()
 }
 
 
-void ControlItem::on_hexBox_stateChanged(int arg1)
+void ControlItem::on_hexBox_checkStateChanged(Qt::CheckState arg1)
 {
     ui->CMDEdit->setPlaceholderText(tr("Command") + ((arg1 == Qt::Checked) ? "(Hex)" : ""));
 }

@@ -1,8 +1,9 @@
-﻿#ifndef PLOTTAB_H
+#ifndef PLOTTAB_H
 #define PLOTTAB_H
 
 #include <QWidget>
 #include <random>
+#include <QTextDecoder>
 
 #include "mysettings.h"
 #include "mycustomplot.h"
