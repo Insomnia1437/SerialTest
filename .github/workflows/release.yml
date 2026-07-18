@@ -109,7 +109,7 @@ jobs:
           if-no-files-found: error
 
   macos:
-    name: macOS 14 / Apple Clang
+    name: macOS 14 / Apple Silicon arm64
     runs-on: macos-14
     steps:
       - name: Checkout
@@ -126,10 +126,18 @@ jobs:
           cache: true
 
       - name: Configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+        run: |
+          test "$(uname -m)" = "arm64"
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_TESTING=ON \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=14.0
 
       - name: Build
-        run: cmake --build build --parallel
+        run: |
+          cmake --build build --parallel
+          test "$(lipo -archs build/SerialTest.app/Contents/MacOS/SerialTest)" = "arm64"
 
       - name: Test
         run: ctest --test-dir build --output-on-failure

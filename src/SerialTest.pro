@@ -4,7 +4,8 @@ QT += core gui widgets serialport bluetooth network printsupport core5compat
 CONFIG += c++17
 
 macx {
-    QMAKE_MACOSX_DEPLOYMENT_TARGET = 26.0
+    QMAKE_APPLE_DEVICE_ARCHS = arm64
+    QMAKE_MACOSX_DEPLOYMENT_TARGET = 14.0
 }
 
 win32-msvc*: {

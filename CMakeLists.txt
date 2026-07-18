@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.21)
 
+if(APPLE)
+    # SerialTest intentionally targets Apple Silicon Macs only.
+    set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE STRING "Supported macOS architecture")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "14.0" CACHE STRING "Minimum supported macOS version")
+endif()
+
 project(SerialTest VERSION 0.3.5 LANGUAGES CXX)
 
 include(CTest)

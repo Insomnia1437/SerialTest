@@ -228,6 +228,7 @@ Install CMake 3.21 or newer, a C++17 compiler, and Qt 6.8 or newer with these mo
 - Qt Serial Port
 
 QCustomPlot 2.1.1 is included in the repository, so no additional download is required.
+The macOS build intentionally targets Apple Silicon (`arm64`) and macOS 14 or newer.
 
 On Ubuntu, Qt can be installed with the Qt online installer. The remaining system build dependencies are:
 

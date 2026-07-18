@@ -228,6 +228,7 @@ Android版本还可以在[F-Droid](https://f-droid.org/packages/priv.wh201906.se
 - Qt Serial Port
 
 仓库已经包含 QCustomPlot 2.1.1，无需另外下载。
+macOS 版本仅面向 Apple Silicon（`arm64`），最低支持 macOS 14。
 
 Ubuntu 上可以使用 Qt 在线安装器安装 Qt。其余系统构建依赖如下：
 
