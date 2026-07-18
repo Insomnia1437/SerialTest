@@ -12,12 +12,10 @@
 #include <QDebug>
 #include <utility>
 
-DataTab::DataTab(QByteArray* RxBuf, QVector<Metadata>* RxMetadataBuf, QByteArray* TxBuf, QWidget *parent) :
+DataTab::DataTab(SessionData* sessionData, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::DataTab),
-    rawReceivedData(RxBuf),
-    RxMetadata(RxMetadataBuf),
-    rawSendedData(TxBuf)
+    m_sessionData(sessionData)
 {
     ui->setupUi(this);
 #ifdef Q_OS_ANDROID
@@ -293,7 +291,7 @@ void DataTab::on_receivedExportButton_clicked()
     if(selection.isEmpty())
     {
         flag &= file.open(QFile::WriteOnly);
-        flag &= file.write(*rawReceivedData) != -1;
+        flag &= file.write(m_sessionData->receivedData()) != -1;
     }
     else
     {
@@ -316,7 +314,7 @@ void DataTab::on_sendedExportButton_clicked()
     if(selection.isEmpty())
     {
         flag &= file.open(QFile::WriteOnly);
-        flag &= file.write(*rawSendedData) != -1;
+        flag &= file.write(m_sessionData->sentData()) != -1;
     }
     else
     {
@@ -372,15 +370,15 @@ void DataTab::syncReceivedEditWithData()
         if(RxTimestampEnabled)
         {
             ui->receivedEdit->clear();
-            for(const Metadata& item : std::as_const(*RxMetadata))
+            for(const Metadata& item : m_sessionData->receivedMetadata())
             {
-                QByteArray dataItem = rawReceivedData->mid(item.pos, item.len);
+                QByteArray dataItem = m_sessionData->receivedData().mid(item.pos, item.len);
                 ui->receivedEdit->appendPlainText(stringWithTimestamp(dataItem.toHex(' '), item.timestamp));
             }
         }
         else
         {
-            ui->receivedEdit->setPlainText(rawReceivedData->toHex(' ') + ' ');
+            ui->receivedEdit->setPlainText(m_sessionData->receivedData().toHex(' ') + ' ');
         }
     }
     else
@@ -388,16 +386,16 @@ void DataTab::syncReceivedEditWithData()
         if(RxTimestampEnabled)
         {
             ui->receivedEdit->clear();
-            for(const Metadata& item : std::as_const(*RxMetadata))
+            for(const Metadata& item : m_sessionData->receivedMetadata())
             {
-                QByteArray dataItem = rawReceivedData->mid(item.pos, item.len);
+                QByteArray dataItem = m_sessionData->receivedData().mid(item.pos, item.len);
                 ui->receivedEdit->appendPlainText(stringWithTimestamp(dataCodec->toUnicode(dataItem), item.timestamp));
             }
         }
         else
         {
             // sync, use QTextCodec
-            ui->receivedEdit->setPlainText(dataCodec->toUnicode(*rawReceivedData));
+            ui->receivedEdit->setPlainText(dataCodec->toUnicode(m_sessionData->receivedData()));
         }
     }
     RxSlider->blockSignals(false);
@@ -407,9 +405,9 @@ void DataTab::syncReceivedEditWithData()
 void DataTab::syncSendedEditWithData()
 {
     if(isSendedDataHex)
-        ui->sendedEdit->setPlainText(rawSendedData->toHex(' ') + ' ');
+        ui->sendedEdit->setPlainText(m_sessionData->sentData().toHex(' ') + ' ');
     else
-        ui->sendedEdit->setPlainText(dataCodec->toUnicode(*rawSendedData));
+        ui->sendedEdit->setPlainText(dataCodec->toUnicode(m_sessionData->sentData()));
 }
 
 void DataTab::setConnection(Connection* conn)
@@ -673,5 +671,4 @@ void DataTab::onSharedTextReceived(JNIEnv *env, jobject thiz, jstring text)
 DataTab* DataTab::m_currInstance = nullptr;
 
 #endif
-
 

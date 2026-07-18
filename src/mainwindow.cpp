@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "util.h"
 #include "filexceiver.h"
+#include "appstyle.h"
 
 #include <QDateTime>
 #include <QBluetoothLocalDevice>
@@ -9,6 +10,8 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QTabBar>
+#include <QStyle>
 #ifdef Q_OS_ANDROID
 #include <QAndroidJniEnvironment>
 #endif
@@ -18,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    resize(1280, 760);
     // might not be empty(specified by -stylesheet option)
     m_appDefaultQss = qApp->styleSheet();
     contextMenu = new QMenu();
@@ -57,7 +61,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(IOConnection, &Connection::TCP_clientDisconnected, deviceTab, &DeviceTab::onClientCountChanged);
     ui->funcTab->insertTab(0, deviceTab, tr("Connect"));
 
-    dataTab = new DataTab(&rawReceivedData, &RxMetadata, &rawSendedData);
+    dataTab = new DataTab(&m_sessionData);
     dataTab->setConnection(IOConnection);
     connect(deviceTab, &DeviceTab::connTypeChanged, dataTab, &DataTab::onConnTypeChanged);
     connect(dataTab, &DataTab::send, this, &MainWindow::sendData);
@@ -214,8 +218,26 @@ void MainWindow::onStateButtonClicked()
 
 void MainWindow::initUI()
 {
-    statusBar()->addPermanentWidget(stateButton, 0);
-    statusBar()->addPermanentWidget(connArgsLabel, 1);
+    connectionBar = new QToolBar(tr("Connection"), this);
+    connectionBar->setObjectName("connectionBar");
+    connectionBar->setMovable(false);
+    connectionBar->setFloatable(false);
+    connectionBar->setContextMenuPolicy(Qt::PreventContextMenu);
+    addToolBar(Qt::TopToolBarArea, connectionBar);
+
+    QLabel* brandLabel = new QLabel(tr("SERIAL TEST"), connectionBar);
+    brandLabel->setObjectName("brandLabel");
+    connectionBar->addWidget(brandLabel);
+    connectionBar->addSeparator();
+
+    stateButton->setObjectName("stateButton");
+    stateButton->setCursor(Qt::PointingHandCursor);
+    connectionBar->addWidget(stateButton);
+
+    connArgsLabel->setObjectName("connectionSummary");
+    connArgsLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    connectionBar->addWidget(connArgsLabel);
+
     statusBar()->addPermanentWidget(RxLabel, 0);
     statusBar()->addPermanentWidget(TxLabel, 0);
     statusBar()->addPermanentWidget(serialPinout, 0);
@@ -248,12 +270,68 @@ void MainWindow::initUI()
     QTimer::singleShot(0, this, &MainWindow::onTopBoxClicked); // run it after UI initialization
 
     dockInit();
+    initNavigation();
 #endif
 
     stateButton->setMinimumHeight(1);
-    stateButton->setStyleSheet("*{text-align:left;}");
 
     updateStatusBar();
+}
+
+void MainWindow::initNavigation()
+{
+    navigationBar = new QToolBar(tr("Navigation"), this);
+    navigationBar->setObjectName("navigationBar");
+    navigationBar->setMovable(false);
+    navigationBar->setFloatable(false);
+    navigationBar->setContextMenuPolicy(Qt::PreventContextMenu);
+    navigationBar->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    addToolBar(Qt::LeftToolBarArea, navigationBar);
+
+    QActionGroup* group = new QActionGroup(navigationBar);
+    group->setExclusive(true);
+
+    for(int i = 0; i < dockList.size(); ++i)
+    {
+        QAction* action = navigationBar->addAction(dockList[i]->windowTitle());
+        action->setCheckable(true);
+        action->setActionGroup(group);
+        navigationActions.append(action);
+
+        connect(action, &QAction::triggered, this, [this, i]() {
+            showUpTab(i);
+        });
+        connect(dockList[i], &QDockWidget::visibilityChanged, this, [this, i](bool visible) {
+            if(visible && !dockList[i]->isFloating())
+                navigationActions[i]->setChecked(true);
+        });
+    }
+
+    if(!navigationActions.isEmpty())
+        navigationActions.first()->setChecked(true);
+
+    QTimer::singleShot(0, this, &MainWindow::hideDockTabBars);
+}
+
+void MainWindow::hideDockTabBars()
+{
+    const QList<QTabBar*> tabBars = findChildren<QTabBar*>();
+    for(QTabBar* tabBar : tabBars)
+    {
+        bool isDockTabBar = tabBar->count() == dockList.size();
+        for(int i = 0; isDockTabBar && i < tabBar->count(); ++i)
+            isDockTabBar = tabBar->tabText(i) == dockList[i]->windowTitle();
+
+        if(isDockTabBar)
+            tabBar->hide();
+    }
+}
+
+void MainWindow::refreshConnectionStateStyle(const char* stateName)
+{
+    stateButton->setProperty("connectionState", stateName);
+    stateButton->style()->unpolish(stateButton);
+    stateButton->style()->polish(stateButton);
 }
 
 void MainWindow::updateStatusBar()
@@ -352,11 +430,20 @@ void MainWindow::updateStatusBar()
     connArgsLabel->setText(connArgsText);
     Connection::State currState = IOConnection->state();
     if(currState == Connection::Connected)
-        stateButton->setText(tr("State") + ": OK");
+    {
+        stateButton->setText(tr("Connected"));
+        refreshConnectionStateStyle("connected");
+    }
     else if(currState == Connection::Bound || currState == Connection::Connecting)
-        stateButton->setText(tr("State") + ": ...");
+    {
+        stateButton->setText(currState == Connection::Bound ? tr("Listening") : tr("Connecting"));
+        refreshConnectionStateStyle("connecting");
+    }
     else
-        stateButton->setText(tr("State") + ": X");
+    {
+        stateButton->setText(tr("Disconnected"));
+        refreshConnectionStateStyle("disconnected");
+    }
     updateRxTxLen();
 }
 
@@ -367,16 +454,13 @@ void MainWindow::updateWindowTitle(Connection::Type type)
 
 void MainWindow::clearSendedData()
 {
-    rawSendedData.clear();
-    m_TxCount = 0;
+    m_sessionData.clearSent();
     updateRxTxLen(false, true);
 }
 
 void MainWindow::clearReceivedData()
 {
-    rawReceivedData.clear();
-    RxMetadata.clear();
-    m_RxCount = 0;
+    m_sessionData.clearReceived();
     updateRxTxLen(true, false);
 }
 
@@ -387,6 +471,10 @@ void MainWindow::setTxDataRecording(bool enabled)
 
 void MainWindow::showUpTab(int tabID)
 {
+    const int panelCount = ui->funcTab->isVisible() ? ui->funcTab->count() : dockList.size();
+    if(tabID < 0 || tabID >= panelCount)
+        return;
+
     if(ui->funcTab->isVisible())
         ui->funcTab->setCurrentIndex(tabID);
     else
@@ -394,6 +482,9 @@ void MainWindow::showUpTab(int tabID)
         dockList[tabID]->setVisible(true);
         dockList[tabID]->raise();
     }
+
+    if(tabID < navigationActions.size())
+        navigationActions[tabID]->setChecked(true);
 }
 
 void MainWindow::setFullScreen(bool isFullScreen)
@@ -414,9 +505,9 @@ void MainWindow::setFullScreen(bool isFullScreen)
 void MainWindow::updateRxTxLen(bool updateRx, bool updateTx)
 {
     if(updateRx)
-        RxLabel->setText(tr("Rx") + ": " + QString::number(m_RxCount));
+        RxLabel->setText(tr("Rx") + ": " + QString::number(m_sessionData.receivedCount()));
     if(updateTx)
-        TxLabel->setText(tr("Tx") + ": " + QString::number(m_TxCount));
+        TxLabel->setText(tr("Tx") + ": " + QString::number(m_sessionData.sentCount()));
 }
 
 void MainWindow::onIODeviceConnected()
@@ -501,19 +592,13 @@ void MainWindow::readData()
     if(newData.isEmpty())
         return;
 
-    Metadata metadata(rawReceivedData.length(), newData.length(), QDateTime::currentMSecsSinceEpoch());
-    if(m_mergeTimestamp && !RxMetadata.isEmpty() && metadata.timestamp - RxMetadata.last().timestamp < m_timestampInterval)
-        RxMetadata.last().len += metadata.len;
-    else
-    {
-        RxMetadata.append(metadata);
-        RxUIMetadataBuf += metadata;
-    }
-
-    rawReceivedData += newData;
-    m_RxCount += newData.length();
+    m_sessionData.appendReceived(
+        newData,
+        QDateTime::currentMSecsSinceEpoch(),
+        m_mergeTimestamp,
+        m_timestampInterval
+    );
     updateRxTxLen(true, false);
-    RxUIBuf += newData;
     QApplication::processEvents();
 }
 
@@ -533,10 +618,9 @@ void MainWindow::sendData(const QByteArray& data)
         return;
     if(m_TxDataRecording)
     {
-        rawSendedData += data;
         dataTab->appendSendedData(data);
     }
-    m_TxCount += len;
+    m_sessionData.appendSent(data, len, m_TxDataRecording);
     updateRxTxLen(false, true);
 }
 
@@ -545,16 +629,15 @@ void MainWindow::sendData(const QByteArray& data)
 // maybe standalone decoder?
 void MainWindow::updateRxUI()
 {
-    if(RxUIBuf.isEmpty())
+    SessionData::ReceiveBatch batch = m_sessionData.takePendingReceived();
+    if(batch.isEmpty())
         return;
     if(dataTab->getRxRealtimeState())
-        dataTab->appendReceivedData(RxUIBuf, RxUIMetadataBuf);
+        dataTab->appendReceivedData(batch.data, batch.metadata);
     if(plotTab->enabled())
-        plotTab->newData(RxUIBuf);
+        plotTab->newData(batch.data);
     if(fileTab->receiving())
-        fileTab->fileXceiver()->newData(RxUIBuf);
-    RxUIBuf.clear();
-    RxUIMetadataBuf.clear();
+        fileTab->fileXceiver()->newData(batch.data);
 }
 
 
@@ -570,93 +653,7 @@ void MainWindow::onOpacityChanged(qreal value)
 
 void MainWindow::onThemeChanged(const QString& themeName)
 {
-    QFile themeFile;
-    QTextStream themeStream;
-    QString qssString = qApp->styleSheet(); // default behavior
-    if(themeName == "(none)")
-        qssString = m_appDefaultQss;
-    else if(themeName == "qdss_dark")
-    {
-        themeFile.setFileName(":/qdarkstyle/dark/darkstyle.qss");
-        if(themeFile.open(QFile::ReadOnly | QFile::Text))
-        {
-            themeStream.setDevice(&themeFile);
-            qssString = themeStream.readAll();
-        }
-    }
-    else if(themeName == "qdss_light")
-    {
-        themeFile.setFileName(":/qdarkstyle/light/lightstyle.qss");
-        if(themeFile.open(QFile::ReadOnly | QFile::Text))
-        {
-            themeStream.setDevice(&themeFile);
-            qssString = themeStream.readAll();
-        }
-    }
-
-    // Append modern UI styling overrides
-    if (themeName == "qdss_dark")
-    {
-        qssString += R"(
-            QMainWindow { background-color: #1a1a1c; }
-            QDockWidget { border: 1px solid #2d2d30; }
-            #dockTitleBar { background-color: #212124; border-bottom: 1px solid #2d2d30; min-height: 32px; }
-            #dockTitleLabel { color: #e0e0e0; font-weight: bold; font-size: 12px; }
-            #dockBackButton { background-color: #007acc; color: #ffffff; border: none; border-radius: 4px; padding: 4px 10px; font-size: 11px; font-weight: bold; }
-            #dockBackButton:hover { background-color: #0098ff; }
-            #dockBackButton:pressed { background-color: #005a9e; }
-            QTabBar { background-color: #1a1a1c; }
-            QTabBar::tab { background-color: #212124; color: #a0a0a5; padding: 10px 24px; min-width: 90px; border: none; border-bottom: 3px solid transparent; font-size: 12px; font-weight: bold; }
-            QTabBar::tab:selected { background-color: #1a1a1c; color: #007acc; border-bottom: 3px solid #007acc; }
-            QTabBar::tab:hover:!selected { background-color: #2d2d32; color: #e0e0e0; }
-            QScrollBar:vertical { border: none; background: #1a1a1c; width: 10px; }
-            QScrollBar::handle:vertical { background: #3e3e42; min-height: 20px; border-radius: 5px; }
-            QScrollBar::handle:vertical:hover { background: #4f4f54; }
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { border: none; background: none; }
-            QScrollBar:horizontal { border: none; background: #1a1a1c; height: 10px; }
-            QScrollBar::handle:horizontal { background: #3e3e42; min-width: 20px; border-radius: 5px; }
-            QScrollBar::handle:horizontal:hover { background: #4f4f54; }
-            QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { border: none; background: none; }
-            QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox { background-color: #252528; color: #e0e0e0; border: 1px solid #3e3e42; border-radius: 6px; padding: 6px 12px; font-size: 12px; }
-            QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus { border: 1px solid #007acc; }
-            QPushButton { background-color: #2d2d30; color: #e0e0e0; border: 1px solid #3e3e42; border-radius: 6px; padding: 6px 16px; font-weight: bold; font-size: 12px; }
-            QPushButton:hover { background-color: #3e3e42; border-color: #007acc; }
-            QPushButton:pressed { background-color: #1e1e20; }
-            QPushButton:disabled { color: #6e6e72; background-color: #1c1c1e; border-color: #2c2c2e; }
-        )";
-    }
-    else
-    {
-        qssString += R"(
-            QMainWindow { background-color: #f3f3f5; }
-            QDockWidget { border: 1px solid #d0d0d5; }
-            #dockTitleBar { background-color: #e8e8ec; border-bottom: 1px solid #d0d0d5; min-height: 32px; }
-            #dockTitleLabel { color: #202020; font-weight: bold; font-size: 12px; }
-            #dockBackButton { background-color: #007acc; color: #ffffff; border: none; border-radius: 4px; padding: 4px 10px; font-size: 11px; font-weight: bold; }
-            #dockBackButton:hover { background-color: #0098ff; }
-            #dockBackButton:pressed { background-color: #005a9e; }
-            QTabBar { background-color: #f3f3f5; }
-            QTabBar::tab { background-color: #e8e8ec; color: #606065; padding: 10px 24px; min-width: 90px; border: none; border-bottom: 3px solid transparent; font-size: 12px; font-weight: bold; }
-            QTabBar::tab:selected { background-color: #f3f3f5; color: #007acc; border-bottom: 3px solid #007acc; }
-            QTabBar::tab:hover:!selected { background-color: #dddde2; color: #202025; }
-            QScrollBar:vertical { border: none; background: #f3f3f5; width: 10px; }
-            QScrollBar::handle:vertical { background: #c0c0c5; min-height: 20px; border-radius: 5px; }
-            QScrollBar::handle:vertical:hover { background: #a8a8ad; }
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { border: none; background: none; }
-            QScrollBar:horizontal { border: none; background: #f3f3f5; height: 10px; }
-            QScrollBar::handle:horizontal { background: #c0c0c5; min-width: 20px; border-radius: 5px; }
-            QScrollBar::handle:horizontal:hover { background: #a8a8ad; }
-            QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { border: none; background: none; }
-            QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox { background-color: #ffffff; color: #202020; border: 1px solid #c0c0c5; border-radius: 6px; padding: 6px 12px; font-size: 12px; }
-            QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus { border: 1px solid #007acc; }
-            QPushButton { background-color: #ffffff; color: #202020; border: 1px solid #c0c0c5; border-radius: 6px; padding: 6px 16px; font-weight: bold; font-size: 12px; }
-            QPushButton:hover { background-color: #f0f0f5; border-color: #007acc; }
-            QPushButton:pressed { background-color: #e0e0e5; }
-            QPushButton:disabled { color: #a0a0a5; background-color: #f9f9f9; border-color: #e0e0e5; }
-        )";
-    }
-
-    qApp->setStyleSheet(qssString);
+    qApp->setStyleSheet(AppStyle::styleSheet(themeName, m_appDefaultQss));
 }
 
 void MainWindow::dockInit()
@@ -782,4 +779,3 @@ void MainWindow::onTopBoxClicked()
 }
 
 #endif
-

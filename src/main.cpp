@@ -7,9 +7,11 @@
 #include <QFileInfo>
 #include <QStandardPaths>
 #include <QCommandLineParser>
+#include <QTimer>
 
 int main(int argc, char *argv[])
 {
+    QString screenshotPath;
 #ifndef Q_OS_ANDROID
     // A trick to handle non-ascii path
     // The application cannot find the plugins when the path contains non ascii characters.
@@ -36,7 +38,11 @@ int main(int argc, char *argv[])
     parser.addOption({"config-path",
                       "Use specified file as config file",
                       "file path"});
+    parser.addOption({"screenshot",
+                      "Save a main-window screenshot and exit (for UI smoke tests)",
+                      "file path"});
     parser.process(a);
+    screenshotPath = parser.value("screenshot");
 
     // on PC, store preferences in files for portable use
     if(parser.isSet("config-path"))
@@ -104,5 +110,14 @@ int main(int argc, char *argv[])
 
     MainWindow w;
     w.show();
+
+    if(!screenshotPath.isEmpty())
+    {
+        QTimer::singleShot(500, &w, [&a, &w, screenshotPath]() {
+            const bool saved = w.grab().save(screenshotPath);
+            a.exit(saved ? 0 : 2);
+        });
+    }
+
     return a.exec();
 }

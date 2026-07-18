@@ -34,6 +34,7 @@ find_package(
 
 set(SERIALTEST_SOURCES
     src/adaptivestackedwidget.cpp
+    src/appstyle.cpp
     src/asynccrc.cpp
     src/connection.cpp
     src/controlitem.cpp
@@ -51,9 +52,11 @@ set(SERIALTEST_SOURCES
     src/plottab.cpp
     src/qcustomplot.cpp
     src/serialpinout.cpp
+    src/sessiondata.cpp
     src/settingstab.cpp
     src/util.cpp
     src/adaptivestackedwidget.h
+    src/appstyle.h
     src/asynccrc.h
     src/connection.h
     src/controlitem.h
@@ -70,6 +73,7 @@ set(SERIALTEST_SOURCES
     src/plottab.h
     src/qcustomplot.h
     src/serialpinout.h
+    src/sessiondata.h
     src/settingstab.h
     src/util.h
     src/ui/controlitem.ui
@@ -85,6 +89,7 @@ set(SERIALTEST_SOURCES
     src/i18n/language.qrc
     src/qdarkstyle/dark/darkstyle.qrc
     src/qdarkstyle/light/lightstyle.qrc
+    src/theme/theme.qrc
 )
 
 if(WIN32)
@@ -153,4 +158,16 @@ install(
 
 if(BUILD_TESTING)
     add_subdirectory(tests)
+    add_test(
+        NAME serialtest_ui_smoke
+        COMMAND SerialTest
+            --config-path "${CMAKE_CURRENT_BINARY_DIR}/ui-smoke.ini"
+            --screenshot "${CMAKE_CURRENT_BINARY_DIR}/ui-smoke.png"
+    )
+    set_tests_properties(
+        serialtest_ui_smoke
+        PROPERTIES
+            ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+            TIMEOUT 20
+    )
 endif()

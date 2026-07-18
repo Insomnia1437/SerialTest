@@ -8,6 +8,8 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QTimer>
+#include <QActionGroup>
+#include <QToolBar>
 
 #include <QSerialPort>
 #include <QSerialPortInfo>
@@ -29,6 +31,7 @@
 #include "serialpinout.h"
 #include "connection.h"
 #include "metadata.h"
+#include "sessiondata.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui
@@ -98,13 +101,7 @@ private:
     SerialPinout* serialPinout;
 
     bool m_TxDataRecording = true;
-    QByteArray rawReceivedData;
-    QVector<Metadata> RxMetadata;
-    qint64 m_RxCount = 0;
-    QByteArray rawSendedData;
-    qint64 m_TxCount = 0;
-    QByteArray RxUIBuf;
-    QVector<Metadata> RxUIMetadataBuf;
+    SessionData m_sessionData;
 
     bool m_mergeTimestamp = true;
     int m_timestampInterval = 10;
@@ -119,6 +116,9 @@ private:
     FileTab* fileTab;
     SettingsTab* settingsTab;
     QList<QDockWidget*> dockList;
+    QList<QAction*> navigationActions;
+    QToolBar* connectionBar = nullptr;
+    QToolBar* navigationBar = nullptr;
 
     QString m_appDefaultQss;
 
@@ -131,5 +131,8 @@ private:
 
     void dockInit();
     void initTabs();
+    void initNavigation();
+    void hideDockTabBars();
+    void refreshConnectionStateStyle(const char* stateName);
 };
 #endif // MAINWINDOW_H

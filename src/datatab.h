@@ -13,6 +13,7 @@
 #include "mysettings.h"
 #include "connection.h"
 #include "metadata.h"
+#include "sessiondata.h"
 
 namespace Ui
 {
@@ -24,7 +25,7 @@ class DataTab : public QWidget
     Q_OBJECT
 
 public:
-    explicit DataTab(QByteArray* RxBuf, QVector<Metadata>* RxMetadataBuf, QByteArray* TxBuf, QWidget *parent = nullptr);
+    explicit DataTab(SessionData* sessionData, QWidget *parent = nullptr);
     ~DataTab();
 
     void appendSendedData(const QByteArray &data);
@@ -96,9 +97,7 @@ private:
     QTextDecoder* RxDecoder = nullptr; // for Rx UI, a multi-byte character might be split.
     char lastReceivedByte = '\0';
     int RxHexCounter = 0, TxHexCounter = 0;
-    QByteArray* rawReceivedData = nullptr;
-    QVector<Metadata>* RxMetadata;
-    QByteArray* rawSendedData = nullptr;
+    SessionData* m_sessionData = nullptr;
 
     bool acceptClearSignal = false;
 
