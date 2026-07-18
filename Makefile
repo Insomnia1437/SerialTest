@@ -1,17 +1,17 @@
-.PHONY: all clean rebuild
+.PHONY: all clean configure rebuild test
 
 BUILD_DIR = build
 
-all: $(BUILD_DIR)/Makefile
-	@make -C $(BUILD_DIR)
+all: configure
+	cmake --build $(BUILD_DIR) --parallel
 
-$(BUILD_DIR)/Makefile:
-	@mkdir -p $(BUILD_DIR)
-	@cd $(BUILD_DIR) && qmake ../src/SerialTest.pro
+configure:
+	cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+
+test: all
+	ctest --test-dir $(BUILD_DIR) --output-on-failure
 
 clean:
-	@if [ -d $(BUILD_DIR) ]; then \
-		make -C $(BUILD_DIR) clean || true; \
-	fi
+	cmake --build $(BUILD_DIR) --target clean
 
 rebuild: clean all

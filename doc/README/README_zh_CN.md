@@ -214,43 +214,47 @@ Android版本还可以在[F-Droid](https://f-droid.org/packages/priv.wh201906.se
      alt="Get it on F-Droid"
      height="80">](https://f-droid.org/zh_Hans/packages/priv.wh201906.serialtest/)  
 
-## 在Linux系统下编译
+## 从源码编译
 
 <details>
 <summary>步骤</summary>
 
 ### 1. 安装依赖
+
+安装 CMake 3.21 或更高版本、支持 C++17 的编译器，以及 Qt 6.8 或更高版本，并包含以下模块：
+
+- Qt Core5Compat
+- Qt Connectivity（蓝牙）
+- Qt Serial Port
+
+仓库已经包含 QCustomPlot 2.1.1，无需另外下载。
+
+Ubuntu 上可以使用 Qt 在线安装器安装 Qt。其余系统构建依赖如下：
+
 ```bash
-# sudo add-apt-repository universe
 sudo apt-get update
-# sudo apt-get install git build-essential
-sudo apt-get install qtbase5-dev qt5-qmake libqt5serialport5-dev qtconnectivity5-dev  
+sudo apt-get install build-essential cmake libgl1-mesa-dev libegl1-mesa-dev libxkbcommon-dev
 ```
+
 ### 2. 获取项目源码
+
 ```bash
-cd ~
-git clone https://github.com/wh201906/SerialTest.git --depth=1
+git clone https://github.com/Insomnia1437/SerialTest.git --depth=1
 cd SerialTest
-mkdir build && cd build
 ```
 
-### 3. 选择如何使用QCustomPlot
-#### 使用QCustomPlot源代码（推荐）  
-你需要[下载](https://www.qcustomplot.com/release/2.1.1/QCustomPlot-source.tar.gz)QCustomPlot的压缩包，将当中的qcustomplot.cpp和qcustomplot.h解压到src/目录下，然后继续编译。
+### 3. 配置、编译并运行测试
+
 ```bash
-wget https://www.qcustomplot.com/release/2.1.1/QCustomPlot-source.tar.gz
-tar -xzf QCustomPlot-source.tar.gz
-cp qcustomplot-source/qcustomplot.* ../src
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+cmake --build build --parallel
+ctest --test-dir build --output-on-failure
 ```
 
-#### 使用QCustomPlot库  
-如果src/目录中没有qcustomplot.cpp，项目在编译时会尝试在生成文件夹和库文件的默认文件夹当中寻找QCustomPlot的库文件(xxx.so/xxx.dll)。
-### 4. 编译并运行
+如果 CMake 找不到 Qt，可显式指定 Qt 安装目录：
+
 ```bash
-export QT_SELECT=qt5
-qmake ../src
-make -j4 && make clean
-./SerialTest 
+cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/Qt/6.8.3/gcc_64
 ```
 
 </details>

@@ -214,43 +214,47 @@ The Android app is available on [F-Droid](https://f-droid.org/packages/priv.wh20
      alt="Get it on F-Droid"
      height="80">](https://f-droid.org/packages/priv.wh201906.serialtest/)  
 
-## Build on Linux
+## Build from source
 
 <details>
 <summary>Steps</summary>
 
-### 1. Install depencencies
+### 1. Install dependencies
+
+Install CMake 3.21 or newer, a C++17 compiler, and Qt 6.8 or newer with these modules:
+
+- Qt Core5Compat
+- Qt Connectivity (Bluetooth)
+- Qt Serial Port
+
+QCustomPlot 2.1.1 is included in the repository, so no additional download is required.
+
+On Ubuntu, Qt can be installed with the Qt online installer. The remaining system build dependencies are:
+
 ```bash
-# sudo add-apt-repository universe
 sudo apt-get update
-# sudo apt-get install git build-essential
-sudo apt-get install qtbase5-dev qt5-qmake libqt5serialport5-dev qtconnectivity5-dev 
+sudo apt-get install build-essential cmake libgl1-mesa-dev libegl1-mesa-dev libxkbcommon-dev
 ```
+
 ### 2. Get the source code
+
 ```bash
-cd ~
-git clone https://github.com/wh201906/SerialTest.git --depth=1
+git clone https://github.com/Insomnia1437/SerialTest.git --depth=1
 cd SerialTest
-mkdir build && cd build
 ```
 
-### 3. Choose how to import QCustomplot 
-#### Use QCustomPlot source file（recommended）  
-You need to [download](https://www.qcustomplot.com/release/2.1.1/QCustomPlot-source.tar.gz) QCustomPlot archive, extract the qcustomplot.cpp and qcustomplot.h in the /src folder(replace the existing qcustomplot.h), then build.  
+### 3. Configure, build, and test
+
 ```bash
-wget https://www.qcustomplot.com/release/2.1.1/QCustomPlot-source.tar.gz
-tar -xzf QCustomPlot-source.tar.gz
-cp qcustomplot-source/qcustomplot.* ../src
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+cmake --build build --parallel
+ctest --test-dir build --output-on-failure
 ```
 
-#### Use QCustomPlot library  
-If the qcustomplot.cpp doesn't exist in the src/ folder, the qmake will try to find the library file(xxx.so/xxx.dll) in the building directory(where you call the qmake command) and the default library directory.  
-### 4. Build and run
+If CMake cannot find Qt, pass the Qt installation prefix explicitly:
+
 ```bash
-export QT_SELECT=qt5
-qmake ../src
-make -j4 && make clean
-./SerialTest 
+cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/Qt/6.8.3/gcc_64
 ```
 
 </details>
