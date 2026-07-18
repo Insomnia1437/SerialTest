@@ -128,10 +128,9 @@
              <bool>true</bool>
             </property>
             <property name="plainText">
-             <string>You can specify the config file path by passing &quot;--config-path &lt;path&gt;&quot; option when opening it.
-If the config file path is not set, this app will use the config file in the working directory first.
-If the file is not in the working directory, the app will will find it in the configuration directory.
-If no config file is detected, This app will create one in the current working directory.</string>
+             <string>You can specify the config file path with the &quot;--config-path &lt;path&gt;&quot; option.
+Without that option, an existing preference.ini in the working directory is used for portable mode.
+Otherwise, settings are stored in the system application configuration directory.</string>
             </property>
            </widget>
           </item>
@@ -182,53 +181,6 @@ If no config file is detected, This app will create one in the current working d
              </spacer>
             </item>
            </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="langGrpBox">
-         <property name="title">
-          <string>Language *</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_2">
-            <item>
-             <widget class="QComboBox" name="Lang_nameBox">
-              <property name="sizeAdjustPolicy">
-               <enum>QComboBox::AdjustToContents</enum>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="Lang_setButton">
-              <property name="text">
-               <string>Set</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>0</width>
-                <height>0</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="Lang_filePathEdit">
-            <property name="placeholderText">
-             <string>Language file path (*.qm)</string>
-            </property>
-           </widget>
           </item>
          </layout>
         </widget>
@@ -543,7 +495,7 @@ If no config file is detected, This app will create one in the current working d
             </sizepolicy>
            </property>
            <property name="text">
-            <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/wh201906/SerialTest/releases/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://github.com/wh201906/SerialTest/releases/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/Insomnia1437/SerialTest/releases&quot;&gt;https://github.com/Insomnia1437/SerialTest/releases&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="openExternalLinks">
             <bool>true</bool>
@@ -573,7 +525,7 @@ If no config file is detected, This app will create one in the current working d
             </sizepolicy>
            </property>
            <property name="text">
-            <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/wh201906/SerialTest/issues/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://github.com/wh201906/SerialTest/issues/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/Insomnia1437/SerialTest/issues&quot;&gt;https://github.com/Insomnia1437/SerialTest/issues&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="openExternalLinks">
             <bool>true</bool>

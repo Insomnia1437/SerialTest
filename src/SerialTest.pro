@@ -80,11 +80,6 @@ FORMS += \
     ui/mainwindow.ui \
     ui/plottab.ui
 
-TRANSLATIONS += \
-    i18n/SerialTest_zh_CN.ts \
-    i18n/SerialTest_zh_TW.ts \
-    i18n/SerialTest_nb_NO.ts
-
 RC_ICONS = icon/icon.ico
 ICON = icon/icon.icns
 
@@ -123,13 +118,11 @@ DISTFILES += \
     android/gradlew.bat \
     android/java/priv/wh201906/serialtest/MainActivity.java \
     android/res/values/libs.xml \
-    android/res/values/strings.xml \
-    android/res/values-zh-rCN/strings.xml
+    android/res/values/strings.xml
 
 ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
 
 RESOURCES += \
-    i18n/language.qrc \
     qdarkstyle/dark/darkstyle.qrc \
     qdarkstyle/light/lightstyle.qrc
 

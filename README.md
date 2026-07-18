@@ -1,5 +1,5 @@
 # SerialTest
-[![downloads](https://img.shields.io/github/downloads/wh201906/SerialTest/total?label=GitHub%20release%20downloads)](https://github.com/wh201906/SerialTest/releases)  [![downloads](https://img.shields.io/sourceforge/dt/serialtest.svg?label=SourceForge%20downloads)](https://sourceforge.net/projects/serialtest/)  [![installs](https://img.shields.io/flathub/downloads/io.github.wh201906.serialtest?label=Flathub%20installs)](https://flathub.org/apps/io.github.wh201906.serialtest)  [![translation](https://hosted.weblate.org/widgets/serialtest/-/svg-badge.svg)](https://hosted.weblate.org/engage/serialtest/)  
+[![downloads](https://img.shields.io/github/downloads/wh201906/SerialTest/total?label=GitHub%20release%20downloads)](https://github.com/wh201906/SerialTest/releases)  [![downloads](https://img.shields.io/sourceforge/dt/serialtest.svg?label=SourceForge%20downloads)](https://sourceforge.net/projects/serialtest/)  [![installs](https://img.shields.io/flathub/downloads/io.github.wh201906.serialtest?label=Flathub%20installs)](https://flathub.org/apps/io.github.wh201906.serialtest)
 [![Windows CI(MinGW-w64)](https://github.com/wh201906/SerialTest/actions/workflows/build-windows-mingw.yml/badge.svg)](https://github.com/wh201906/SerialTest/actions/workflows/build-windows-mingw.yml)  [![Windows CI(MSVC)](https://github.com/wh201906/SerialTest/actions/workflows/build-windows-msvc.yml/badge.svg)](https://github.com/wh201906/SerialTest/actions/workflows/build-windows-msvc.yml)  [![macOS CI](https://github.com/wh201906/SerialTest/actions/workflows/build-macos.yml/badge.svg)](https://github.com/wh201906/SerialTest/actions/workflows/build-macos.yml)  
 A versatile test tool running on Windows/Linux/macOS. (Note: Android support is deprecated and will be removed in future versions.)  
 Works as data transceiver/realtime plotter/shortcut/file transceiver.  
@@ -155,7 +155,6 @@ Supports serial port, Bluetooth SPP client/server, Bluetooth LE client, TCP clie
 + PC: Start multiple instances with different modes, which are shown on the title bar
 + Check connection parameters and disconnect/reconnect on status bar
 + Customize font
-+ Select language
 + Change theme(dark theme)
 
 </details>
@@ -278,15 +277,10 @@ yay -S serialtest
 yay -S serialtest-git
 ```
 
-## Translation
-The project uses Weblate to manage translation.  
-If you'd like to help with the translation, please visit the [Weblate translation page](https://hosted.weblate.org/engage/serialtest/) or create a PR to the `weblate` branch.  
-[![Translation status](https://hosted.weblate.org/widgets/serialtest/-/multi-auto.svg)](https://hosted.weblate.org/engage/serialtest/)  
-
 ## Change Log
 [Change Log](CHANGELOG.md)
 
 ## License
 The `src/qcustomplot.h` and the files in `src/qdarkstyle/` are licensed under the same licenses as their respective projects.  
 The source code in `src/` is licensed under [GPL 3.0](LICENSE.GPL).  
-The source code in `demo/`(excluding dependencies), translations, documents and other parts of this project are licensed under [MIT](LICENSE.MIT).  
+The source code in `demo/`(excluding dependencies), documents and other parts of this project are licensed under [MIT](LICENSE.MIT).

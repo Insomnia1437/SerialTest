@@ -21,6 +21,9 @@ public:
     void initSettings();
 public slots:
     void setTouchScroll(bool enabled);
+protected:
+    bool eventFilter(QObject* watched, QEvent* event) override;
+
 private slots:
     void on_Opacity_Box_valueChanged(int arg1);
 
@@ -42,13 +45,9 @@ private slots:
     void on_Android_HWSerialBox_clicked();
 #endif
 
-    void on_Lang_nameBox_currentIndexChanged(int index);
-
     void on_Conf_setMaxHistoryButton_clicked();
 
     void on_Conf_clearHistoryButton_clicked();
-
-    void on_Lang_setButton_clicked();
 
     void on_Conf_importButton_clicked();
 
@@ -70,6 +69,7 @@ private:
     Ui::SettingsTab *ui;
     MySettings* m_settings;
     void createConfFile(const QString &path, bool overwrite = false);
+    void configureDesktopInteraction();
 signals:
     void themeChanged(const QString& themeName);
     void opacityChanged(qreal value);

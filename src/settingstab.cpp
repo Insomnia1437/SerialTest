@@ -4,12 +4,16 @@
 
 #include <QMessageBox>
 #include <QTimer>
-#include <QProcess>
 #include <QStandardPaths>
 #include <QDir>
 #include <QDebug>
 #include <QFileDialog>
 #include <QScroller>
+#include <QAbstractSpinBox>
+#include <QComboBox>
+#include <QScrollBar>
+#include <QSlider>
+#include <QWheelEvent>
 #ifdef Q_OS_ANDROID
 #include <QtAndroid>
 #endif
@@ -19,6 +23,7 @@ SettingsTab::SettingsTab(QWidget *parent) :
     ui(new Ui::SettingsTab)
 {
     ui->setupUi(this);
+    configureDesktopInteraction();
 
 #ifdef Q_OS_ANDROID
     ui->opacityWidget->hide();
@@ -33,13 +38,6 @@ SettingsTab::SettingsTab(QWidget *parent) :
     connect(ui->Opacity_slider, &QSlider::valueChanged, ui->Opacity_Box, &QSpinBox::setValue);
 #endif
 
-    ui->Lang_nameBox->addItem(tr("(System)"), "(sys)");
-    ui->Lang_nameBox->addItem(tr("Simplified Chinese"), "zh_CN");
-    ui->Lang_nameBox->addItem(tr("Traditional Chinese"), "zh_TW");
-    ui->Lang_nameBox->addItem(tr("English"), "en");
-    ui->Lang_nameBox->addItem(tr("Norwegian"), "nb_NO");
-    ui->Lang_nameBox->addItem(tr("(External File)"), "(ext)");
-
     ui->Theme_nameBox->addItem(tr("(None)"), "(none)");
     ui->Theme_nameBox->addItem(tr("Dark"), "qdss_dark");
     ui->Theme_nameBox->addItem(tr("Light"), "qdss_light");
@@ -51,6 +49,67 @@ SettingsTab::SettingsTab(QWidget *parent) :
 SettingsTab::~SettingsTab()
 {
     delete ui;
+}
+
+void SettingsTab::configureDesktopInteraction()
+{
+    // Keep high-risk controls compact so they do not occupy most of the
+    // scrollable page, especially on wide desktop windows.
+    ui->Conf_createInCWDButton->setMaximumWidth(280);
+    ui->Conf_createInConfDirButton->setMaximumWidth(280);
+    ui->Theme_nameBox->setMaximumWidth(240);
+    ui->Font_nameBox->setMaximumWidth(300);
+    ui->DataFont_nameBox->setMaximumWidth(300);
+    ui->Opacity_slider->setMaximumWidth(420);
+
+    const QList<QAbstractSpinBox*> spinBoxes = findChildren<QAbstractSpinBox*>();
+    for(QAbstractSpinBox* spinBox : spinBoxes)
+    {
+        spinBox->setMaximumWidth(110);
+        spinBox->installEventFilter(this);
+    }
+
+    const QList<QComboBox*> comboBoxes = findChildren<QComboBox*>();
+    for(QComboBox* comboBox : comboBoxes)
+        comboBox->installEventFilter(this);
+
+    const QList<QSlider*> sliders = findChildren<QSlider*>();
+    for(QSlider* slider : sliders)
+        slider->installEventFilter(this);
+
+    ui->horizontalLayout_3->addStretch();
+    ui->horizontalLayout_5->addStretch();
+    ui->horizontalLayout_7->addStretch();
+    ui->horizontalLayout_8->addStretch();
+}
+
+bool SettingsTab::eventFilter(QObject* watched, QEvent* event)
+{
+    const bool adjustsValue = qobject_cast<QComboBox*>(watched)
+        || qobject_cast<QAbstractSpinBox*>(watched)
+        || qobject_cast<QSlider*>(watched);
+
+    if(adjustsValue && event->type() == QEvent::Wheel)
+    {
+        const QWheelEvent* wheelEvent = static_cast<QWheelEvent*>(event);
+        QScrollBar* scrollBar = ui->scrollArea->verticalScrollBar();
+
+        int delta = wheelEvent->pixelDelta().y();
+        if(delta == 0 && wheelEvent->angleDelta().y() != 0)
+        {
+            delta = wheelEvent->angleDelta().y() / 120
+                * QApplication::wheelScrollLines() * scrollBar->singleStep();
+        }
+
+        if(delta != 0)
+        {
+            scrollBar->setValue(scrollBar->value() - delta);
+            event->accept();
+            return true;
+        }
+    }
+
+    return QWidget::eventFilter(watched, event);
 }
 
 void SettingsTab::on_Opacity_Box_valueChanged(int arg1)
@@ -208,9 +267,6 @@ void SettingsTab::loadPreference()
     m_settings->beginGroup("SerialTest");
 
     ui->Conf_maxHistoryBox->setValue(m_settings->value("History_MaxCount", 200).toInt());
-    int langId = ui->Lang_nameBox->findData(m_settings->value("Lang_Name", "(sys)").toString());
-    ui->Lang_nameBox->setCurrentIndex((langId == -1) ? 0 : langId);
-    ui->Lang_filePathEdit->setText(m_settings->value("Lang_Path", "").toString());
     ui->Android_fullScreenBox->setChecked(m_settings->value("Android_FullScreen", false).toBool());
     ui->Android_forceLandscapeBox->setChecked(m_settings->value("Android_ForceLandscape", true).toBool());
     ui->Android_dockBox->setChecked(m_settings->value("Android_Dock", false).toBool());
@@ -255,8 +311,6 @@ void SettingsTab::loadPreference()
     ui->Data_mergeTimestampIntervalBox->setValue(m_settings->value("TimestampInterval", 10).toInt());
     m_settings->endGroup();
 
-    // Language is applied in main.cpp, not there.
-    on_Lang_nameBox_currentIndexChanged(ui->Lang_nameBox->currentIndex());
 #ifdef Q_OS_ANDROID
     on_Android_fullScreenBox_clicked();
     on_Android_forceLandscapeBox_clicked();
@@ -304,12 +358,6 @@ void SettingsTab::on_Android_HWSerialBox_clicked()
 #endif
 
 
-void SettingsTab::on_Lang_nameBox_currentIndexChanged(int index)
-{
-    ui->Lang_filePathEdit->setHidden(index != ui->Lang_nameBox->count() - 1);
-}
-
-
 void SettingsTab::on_Conf_setMaxHistoryButton_clicked()
 {
     m_settings->beginGroup("SerialTest");
@@ -326,34 +374,6 @@ void SettingsTab::on_Conf_clearHistoryButton_clicked()
         return;
     for(const auto& name : DeviceTab::m_historyPrefix)
         m_settings->remove(name);
-}
-
-
-void SettingsTab::on_Lang_setButton_clicked()
-{
-    m_settings->beginGroup("SerialTest");
-    m_settings->setValue("Lang_Name", ui->Lang_nameBox->currentData().toString());
-    m_settings->setValue("Lang_Path", ui->Lang_filePathEdit->text());
-    m_settings->endGroup();
-    m_settings->sync();
-
-    QMessageBox::StandardButton btn = QMessageBox::question(
-        this, 
-        tr("Restart Required"), 
-        tr("The language changes will take effect after restarting the application.\nWould you like to restart now?"), 
-        QMessageBox::Yes | QMessageBox::No, 
-        QMessageBox::No
-    );
-
-    if (btn == QMessageBox::Yes)
-    {
-#ifdef Q_OS_ANDROID
-        QApplication::closeAllWindows();
-#else
-        QProcess::startDetached(QApplication::applicationFilePath(), QApplication::arguments());
-        QApplication::quit();
-#endif
-    }
 }
 
 

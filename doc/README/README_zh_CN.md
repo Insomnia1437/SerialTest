@@ -1,5 +1,5 @@
 # SerialTest
-[![downloads](https://img.shields.io/github/downloads/wh201906/SerialTest/total?label=GitHub%E4%B8%8B%E8%BD%BD%E9%87%8F)](https://github.com/wh201906/SerialTest/releases)  [![downloads](https://img.shields.io/sourceforge/dt/serialtest.svg?label=SourceForge%E4%B8%8B%E8%BD%BD%E9%87%8F)](https://sourceforge.net/projects/serialtest/)  [![installs](https://img.shields.io/flathub/downloads/io.github.wh201906.serialtest?label=Flathub%E5%AE%89%E8%A3%85%E9%87%8F)](https://flathub.org/apps/io.github.wh201906.serialtest)  [![translation](https://hosted.weblate.org/widgets/serialtest/-/svg-badge.svg)](https://hosted.weblate.org/engage/serialtest/)  
+[![downloads](https://img.shields.io/github/downloads/wh201906/SerialTest/total?label=GitHub%E4%B8%8B%E8%BD%BD%E9%87%8F)](https://github.com/wh201906/SerialTest/releases)  [![downloads](https://img.shields.io/sourceforge/dt/serialtest.svg?label=SourceForge%E4%B8%8B%E8%BD%BD%E9%87%8F)](https://sourceforge.net/projects/serialtest/)  [![installs](https://img.shields.io/flathub/downloads/io.github.wh201906.serialtest?label=Flathub%E5%AE%89%E8%A3%85%E9%87%8F)](https://flathub.org/apps/io.github.wh201906.serialtest)
 [![Windows CI(MinGW-w64)](https://github.com/wh201906/SerialTest/actions/workflows/build-windows-mingw.yml/badge.svg)](https://github.com/wh201906/SerialTest/actions/workflows/build-windows-mingw.yml)  [![Windows CI(MSVC)](https://github.com/wh201906/SerialTest/actions/workflows/build-windows-msvc.yml/badge.svg)](https://github.com/wh201906/SerialTest/actions/workflows/build-windows-msvc.yml)  [![macOS CI](https://github.com/wh201906/SerialTest/actions/workflows/build-macos.yml/badge.svg)](https://github.com/wh201906/SerialTest/actions/workflows/build-macos.yml)  
 可在Windows/Linux/macOS上运行，功能丰富的调试工具。（注：Android 端支持已废弃，未来版本将逐步移除相关代码。）  
 支持数据收发/实时绘图/快捷方式/文件收发功能。  
@@ -156,7 +156,6 @@
 + PC端程序可多开，标题栏会显示当前工作模式
 + 可在状态栏查看当前连接参数，并快速断开/重连
 + 支持改变字体
-+ 支持改变语言
 + 支持改变主题（含暗色主题）
 
 </details>
@@ -278,15 +277,10 @@ yay -S serialtest
 yay -S serialtest-git
 ```
 
-## 翻译
-此项目使用Weblate来管理翻译。  
-如果你想提交翻译，请访问此项目的[Weblate页面](https://hosted.weblate.org/engage/serialtest/)，或者向`weblate`分支提交PR。  
-[![翻译状态](https://hosted.weblate.org/widgets/serialtest/-/multi-auto.svg)](https://hosted.weblate.org/engage/serialtest/)  
-
 ## 更新日志
 [更新日志](../CHANGELOG/CHANGELOG_zh_CN.md)
 
 ## 许可证
 `src/qcustomplot.h` 和位于 `src/qdarkstyle/` 下的文件使用各自对应项目的许可证。  
 位于 `src/` 下的源代码使用[GPL 3.0](../../LICENSE.GPL)许可证。  
-位于 `demo/` 下的源代码（不包含依赖库），本项目的所有翻译，文档，以及该项目的其它部分均使用[MIT](../../LICENSE.MIT)许可证。
+位于 `demo/` 下的源代码（不包含依赖库）、文档以及该项目的其它部分均使用[MIT](../../LICENSE.MIT)许可证。

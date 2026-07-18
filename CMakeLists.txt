@@ -86,7 +86,6 @@ set(SERIALTEST_SOURCES
     src/ui/plottab.ui
     src/ui/serialpinout.ui
     src/ui/settingstab.ui
-    src/i18n/language.qrc
     src/qdarkstyle/dark/darkstyle.qrc
     src/qdarkstyle/light/lightstyle.qrc
     src/theme/theme.qrc
@@ -170,4 +169,31 @@ if(BUILD_TESTING)
             ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
             TIMEOUT 20
     )
+
+    add_test(
+        NAME serialtest_detachable_panels
+        COMMAND SerialTest
+            --config-path "${CMAKE_CURRENT_BINARY_DIR}/ui-detach.ini"
+            --verify-detachable-panels
+    )
+    set_tests_properties(
+        serialtest_detachable_panels
+        PROPERTIES
+            ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+            TIMEOUT 20
+    )
+
+    add_test(
+        NAME serialtest_settings_scroll
+        COMMAND SerialTest
+            --config-path "${CMAKE_CURRENT_BINARY_DIR}/ui-settings-scroll.ini"
+            --verify-settings-scroll
+    )
+    set_tests_properties(
+        serialtest_settings_scroll
+        PROPERTIES
+            ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+            TIMEOUT 20
+    )
+
 endif()

@@ -126,17 +126,17 @@ MainWindow::MainWindow(QWidget *parent)
     contextMenu->addAction(dockAllWindows);
     contextMenu->addSeparator();
 
-    myInfo = new QAction("wh201906", this);
+    myInfo = new QAction("Insomnia1437", this);
     // APP_VERSION is defined in the .pro file
     currVersion = new QAction(tr("Ver: ") + APP_VERSION, this);
     checkUpdate = new QAction(tr("Check Update"), this);
     connect(myInfo, &QAction::triggered, [ = ]()
     {
-        QDesktopServices::openUrl(QUrl("https://github.com/wh201906"));
+        QDesktopServices::openUrl(QUrl("https://github.com/Insomnia1437/SerialTest"));
     });
     connect(checkUpdate, &QAction::triggered, [ = ]()
     {
-        QDesktopServices::openUrl(QUrl("https://github.com/wh201906/SerialTest/releases"));
+        QDesktopServices::openUrl(QUrl("https://github.com/Insomnia1437/SerialTest/releases"));
     });
 
     contextMenu->addAction(myInfo);
@@ -671,6 +671,8 @@ void MainWindow::dockInit()
         dock->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         widget = ui->funcTab->widget(0);
         dock->setWidget(widget);
+        const bool detachablePanel = widget == dataTab || widget == plotTab;
+        dock->setProperty("detachablePanel", detachablePanel);
 
         // Custom title bar to allow docking back when floating
         QWidget* titleBar = new QWidget(dock);
@@ -682,10 +684,9 @@ void MainWindow::dockInit()
         QLabel* titleLabel = new QLabel(dock->windowTitle(), titleBar);
         titleLabel->setObjectName("dockTitleLabel");
 
-        QPushButton* dockBtn = new QPushButton(tr("Dock Back"), titleBar);
-        dockBtn->setObjectName("dockBackButton");
+        QPushButton* dockBtn = new QPushButton(titleBar);
+        dockBtn->setObjectName(detachablePanel ? "dockWindowButton" : "dockBackButton");
         dockBtn->setCursor(Qt::PointingHandCursor);
-        dockBtn->setToolTip(tr("Dock this window back to the main window"));
 
         titleLayout->addWidget(titleLabel);
         titleLayout->addStretch();
@@ -693,15 +694,35 @@ void MainWindow::dockInit()
 
         dock->setTitleBarWidget(titleBar);
 
-        connect(dockBtn, &QPushButton::clicked, [dock]() {
-            dock->setFloating(false);
+        connect(dockBtn, &QPushButton::clicked, this, [this, dock, detachablePanel]() {
+            if(detachablePanel && !dock->isFloating())
+            {
+                dock->setFloating(true);
+                dock->resize(qMax(760, width() * 2 / 3), qMax(520, height() * 3 / 4));
+                dock->show();
+                dock->raise();
+                dock->activateWindow();
+            }
+            else
+            {
+                dock->setFloating(false);
+                dock->show();
+                dock->raise();
+            }
         });
 
-        auto updateTitleBarVisibility = [titleBar](bool floating) {
-            titleBar->setVisible(floating);
+        auto updateTitleBar = [this, titleBar, dockBtn, detachablePanel](bool floating) {
+            titleBar->setVisible(detachablePanel || floating);
+            dockBtn->setText(floating ? tr("Reattach")
+                                      : (detachablePanel ? tr("Detach") : tr("Dock Back")));
+            dockBtn->setToolTip(floating ? tr("Return this panel to the main window")
+                                         : tr("Open this panel in a separate window"));
+            dockBtn->setProperty("windowState", floating ? "floating" : "docked");
+            dockBtn->style()->unpolish(dockBtn);
+            dockBtn->style()->polish(dockBtn);
         };
-        connect(dock, &QDockWidget::topLevelChanged, this, updateTitleBarVisibility);
-        updateTitleBarVisibility(dock->isFloating());
+        connect(dock, &QDockWidget::topLevelChanged, this, updateTitleBar);
+        updateTitleBar(dock->isFloating());
 
         // For saveState()/restoreState()
         dock->setObjectName(widget->objectName() + "DockWidget");
