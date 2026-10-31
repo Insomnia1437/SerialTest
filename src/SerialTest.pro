@@ -48,6 +48,12 @@ SOURCES += \
     settingstab.cpp \
     util.cpp
 
+contains(CONFIG, ui_smoke) {
+    QT += testlib
+    SOURCES -= main.cpp
+    SOURCES += $$PWD/../tests/ui_smoke.cpp
+}
+
 HEADERS += \
     metadata.h \
     adaptivestackedwidget.h \

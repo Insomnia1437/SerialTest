@@ -163,7 +163,10 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libgl1-mesa-dev libxkbcommon-dev libegl1-mesa-dev
+          sudo apt-get install -y build-essential libgl1-mesa-dev libxkbcommon-dev libegl1-mesa-dev \
+            xvfb fonts-noto-cjk libx11-xcb1 libxcb-cursor0 libxcb-glx0 libxcb-icccm4 libxcb-image0 \
+            libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-shm0 libxcb-sync1 \
+            libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -217,5 +220,29 @@ jobs:
         with:
           name: SerialTest-Ubuntu-24.04-x86_64
           path: ./SerialTest-Ubuntu-24.04-x86_64.tar.gz
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Build UI Smoke Test
+        run: |
+          mkdir -p build/ui-smoke
+          cd build/ui-smoke
+          qmake ../../src/SerialTest.pro CONFIG+=release CONFIG+=ui_smoke
+          make -j2
+
+      - name: Run UI Smoke Test and Capture Screenshots
+        run: |
+          mkdir -p ui-screenshots
+          xvfb-run -a ./build/ui-smoke/SerialTest --theme="(none)" --lang="en" --screenshot-dir="ui-screenshots"
+          xvfb-run -a ./build/ui-smoke/SerialTest --theme="qdss_light" --lang="en" --screenshot-dir="ui-screenshots"
+          xvfb-run -a ./build/ui-smoke/SerialTest --theme="qdss_dark" --lang="en" --screenshot-dir="ui-screenshots"
+          xvfb-run -a ./build/ui-smoke/SerialTest --theme="qdss_light" --lang="zh_CN" --screenshot-dir="ui-screenshots"
+
+      - name: Upload UI Screenshots
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: ui-screenshots
+          path: ui-screenshots/
           retention-days: 7
           if-no-files-found: error
