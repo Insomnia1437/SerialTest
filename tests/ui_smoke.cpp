@@ -62,6 +62,34 @@ private slots:
         QVERIFY(qcpWidget->isVisible());
     }
 
+    void testThemeSwitchCycle()
+    {
+        m_window->onThemeChanged("qdss_light");
+        QTest::qWait(50);
+        QString lightQss1 = qApp->styleSheet();
+        QVERIFY(!lightQss1.isEmpty());
+
+        m_window->onThemeChanged("qdss_dark");
+        QTest::qWait(50);
+        QString darkQss = qApp->styleSheet();
+        QVERIFY(!darkQss.isEmpty());
+        QVERIFY(darkQss != lightQss1);
+
+        m_window->onThemeChanged("(none)");
+        QTest::qWait(50);
+        QString noneQss = qApp->styleSheet();
+        QVERIFY(noneQss != lightQss1);
+        QVERIFY(noneQss != darkQss);
+
+        m_window->onThemeChanged("qdss_light");
+        QTest::qWait(50);
+        QString lightQss2 = qApp->styleSheet();
+        QCOMPARE(lightQss1, lightQss2);
+
+        m_window->onThemeChanged(m_theme);
+        QTest::qWait(50);
+    }
+
     void captureScreenshots()
     {
         if(m_screenshotDir.isEmpty())

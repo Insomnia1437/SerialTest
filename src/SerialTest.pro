@@ -46,6 +46,7 @@ SOURCES += \
     plottab.cpp \
     serialpinout.cpp \
     settingstab.cpp \
+    theme.cpp \
     util.cpp
 
 contains(CONFIG, ui_smoke) {
@@ -72,6 +73,7 @@ HEADERS += \
     plottab.h \
     serialpinout.h \
     settingstab.h \
+    theme.h \
     util.h
 
 FORMS += \
@@ -137,7 +139,8 @@ ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
 RESOURCES += \
     i18n/language.qrc \
     qdarkstyle/dark/darkstyle.qrc \
-    qdarkstyle/light/lightstyle.qrc
+    qdarkstyle/light/lightstyle.qrc \
+    styles/styles.qrc
 
 exists(qcustomplot.cpp) {
     # For platforms which don't have qcp library, like Android.

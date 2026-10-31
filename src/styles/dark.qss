@@ -1,0 +1,93 @@
+QMainWindow {
+    background-color: #1a1a1c;
+}
+
+QDockWidget {
+    border: 1px solid #2d2d30;
+}
+
+#dockTitleBar {
+    background-color: #212124;
+    border-bottom: 1px solid #2d2d30;
+}
+
+#dockTitleLabel {
+    color: #e0e0e0;
+}
+
+#dockBackButton {
+    background-color: #007acc;
+    color: #ffffff;
+}
+
+#dockBackButton:hover {
+    background-color: #0098ff;
+}
+
+#dockBackButton:pressed {
+    background-color: #005a9e;
+}
+
+QTabBar {
+    background-color: #1a1a1c;
+}
+
+QTabBar::tab {
+    background-color: #212124;
+    color: #a0a0a5;
+    border-bottom: 3px solid transparent;
+}
+
+QTabBar::tab:selected {
+    background-color: #1a1a1c;
+    color: #007acc;
+    border-bottom: 3px solid #007acc;
+}
+
+QTabBar::tab:hover:!selected {
+    background-color: #2d2d32;
+    color: #e0e0e0;
+}
+
+QScrollBar:vertical, QScrollBar:horizontal {
+    background: #1a1a1c;
+}
+
+QScrollBar::handle:vertical, QScrollBar::handle:horizontal {
+    background: #3e3e42;
+}
+
+QScrollBar::handle:vertical:hover, QScrollBar::handle:horizontal:hover {
+    background: #4f4f54;
+}
+
+QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox {
+    background-color: #252528;
+    color: #e0e0e0;
+    border: 1px solid #3e3e42;
+}
+
+QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus {
+    border: 1px solid #007acc;
+}
+
+QPushButton {
+    background-color: #2d2d30;
+    color: #e0e0e0;
+    border: 1px solid #3e3e42;
+}
+
+QPushButton:hover {
+    background-color: #3e3e42;
+    border-color: #007acc;
+}
+
+QPushButton:pressed {
+    background-color: #1e1e20;
+}
+
+QPushButton:disabled {
+    color: #6e6e72;
+    background-color: #1c1c1e;
+    border-color: #2c2c2e;
+}

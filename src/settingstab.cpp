@@ -217,7 +217,7 @@ void SettingsTab::loadPreference()
     ui->General_touchScrollBox->setChecked(m_settings->value("TouchScroll", true).toBool());
     ui->Opacity_Box->setValue(m_settings->value("Opacity", 100).toInt());
     ui->General_simultaneousClearBox->setChecked(m_settings->value("ClearBothRxDataAndGraph", false).toBool());
-    int themeId = ui->Theme_nameBox->findData(m_settings->value("Theme_Name", "(none)").toString());
+    int themeId = ui->Theme_nameBox->findData(m_settings->value("Theme_Name", "qdss_light").toString());
     ui->Theme_nameBox->setCurrentIndex((themeId == -1) ? 0 : themeId);
 
     // QApplication::font() might return wrong result

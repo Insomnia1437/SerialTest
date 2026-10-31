@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "util.h"
 #include "filexceiver.h"
+#include "theme.h"
 
 #include <QDateTime>
 #include <QBluetoothLocalDevice>
@@ -570,93 +571,7 @@ void MainWindow::onOpacityChanged(qreal value)
 
 void MainWindow::onThemeChanged(const QString& themeName)
 {
-    QFile themeFile;
-    QTextStream themeStream;
-    QString qssString = qApp->styleSheet(); // default behavior
-    if(themeName == "(none)")
-        qssString = m_appDefaultQss;
-    else if(themeName == "qdss_dark")
-    {
-        themeFile.setFileName(":/qdarkstyle/dark/darkstyle.qss");
-        if(themeFile.open(QFile::ReadOnly | QFile::Text))
-        {
-            themeStream.setDevice(&themeFile);
-            qssString = themeStream.readAll();
-        }
-    }
-    else if(themeName == "qdss_light")
-    {
-        themeFile.setFileName(":/qdarkstyle/light/lightstyle.qss");
-        if(themeFile.open(QFile::ReadOnly | QFile::Text))
-        {
-            themeStream.setDevice(&themeFile);
-            qssString = themeStream.readAll();
-        }
-    }
-
-    // Append modern UI styling overrides
-    if (themeName == "qdss_dark")
-    {
-        qssString += R"(
-            QMainWindow { background-color: #1a1a1c; }
-            QDockWidget { border: 1px solid #2d2d30; }
-            #dockTitleBar { background-color: #212124; border-bottom: 1px solid #2d2d30; min-height: 32px; }
-            #dockTitleLabel { color: #e0e0e0; font-weight: bold; font-size: 12px; }
-            #dockBackButton { background-color: #007acc; color: #ffffff; border: none; border-radius: 4px; padding: 4px 10px; font-size: 11px; font-weight: bold; }
-            #dockBackButton:hover { background-color: #0098ff; }
-            #dockBackButton:pressed { background-color: #005a9e; }
-            QTabBar { background-color: #1a1a1c; }
-            QTabBar::tab { background-color: #212124; color: #a0a0a5; padding: 10px 24px; min-width: 90px; border: none; border-bottom: 3px solid transparent; font-size: 12px; font-weight: bold; }
-            QTabBar::tab:selected { background-color: #1a1a1c; color: #007acc; border-bottom: 3px solid #007acc; }
-            QTabBar::tab:hover:!selected { background-color: #2d2d32; color: #e0e0e0; }
-            QScrollBar:vertical { border: none; background: #1a1a1c; width: 10px; }
-            QScrollBar::handle:vertical { background: #3e3e42; min-height: 20px; border-radius: 5px; }
-            QScrollBar::handle:vertical:hover { background: #4f4f54; }
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { border: none; background: none; }
-            QScrollBar:horizontal { border: none; background: #1a1a1c; height: 10px; }
-            QScrollBar::handle:horizontal { background: #3e3e42; min-width: 20px; border-radius: 5px; }
-            QScrollBar::handle:horizontal:hover { background: #4f4f54; }
-            QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { border: none; background: none; }
-            QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox { background-color: #252528; color: #e0e0e0; border: 1px solid #3e3e42; border-radius: 6px; padding: 6px 12px; font-size: 12px; }
-            QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus { border: 1px solid #007acc; }
-            QPushButton { background-color: #2d2d30; color: #e0e0e0; border: 1px solid #3e3e42; border-radius: 6px; padding: 6px 16px; font-weight: bold; font-size: 12px; }
-            QPushButton:hover { background-color: #3e3e42; border-color: #007acc; }
-            QPushButton:pressed { background-color: #1e1e20; }
-            QPushButton:disabled { color: #6e6e72; background-color: #1c1c1e; border-color: #2c2c2e; }
-        )";
-    }
-    else
-    {
-        qssString += R"(
-            QMainWindow { background-color: #f3f3f5; }
-            QDockWidget { border: 1px solid #d0d0d5; }
-            #dockTitleBar { background-color: #e8e8ec; border-bottom: 1px solid #d0d0d5; min-height: 32px; }
-            #dockTitleLabel { color: #202020; font-weight: bold; font-size: 12px; }
-            #dockBackButton { background-color: #007acc; color: #ffffff; border: none; border-radius: 4px; padding: 4px 10px; font-size: 11px; font-weight: bold; }
-            #dockBackButton:hover { background-color: #0098ff; }
-            #dockBackButton:pressed { background-color: #005a9e; }
-            QTabBar { background-color: #f3f3f5; }
-            QTabBar::tab { background-color: #e8e8ec; color: #606065; padding: 10px 24px; min-width: 90px; border: none; border-bottom: 3px solid transparent; font-size: 12px; font-weight: bold; }
-            QTabBar::tab:selected { background-color: #f3f3f5; color: #007acc; border-bottom: 3px solid #007acc; }
-            QTabBar::tab:hover:!selected { background-color: #dddde2; color: #202025; }
-            QScrollBar:vertical { border: none; background: #f3f3f5; width: 10px; }
-            QScrollBar::handle:vertical { background: #c0c0c5; min-height: 20px; border-radius: 5px; }
-            QScrollBar::handle:vertical:hover { background: #a8a8ad; }
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { border: none; background: none; }
-            QScrollBar:horizontal { border: none; background: #f3f3f5; height: 10px; }
-            QScrollBar::handle:horizontal { background: #c0c0c5; min-width: 20px; border-radius: 5px; }
-            QScrollBar::handle:horizontal:hover { background: #a8a8ad; }
-            QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { border: none; background: none; }
-            QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox { background-color: #ffffff; color: #202020; border: 1px solid #c0c0c5; border-radius: 6px; padding: 6px 12px; font-size: 12px; }
-            QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus { border: 1px solid #007acc; }
-            QPushButton { background-color: #ffffff; color: #202020; border: 1px solid #c0c0c5; border-radius: 6px; padding: 6px 16px; font-weight: bold; font-size: 12px; }
-            QPushButton:hover { background-color: #f0f0f5; border-color: #007acc; }
-            QPushButton:pressed { background-color: #e0e0e5; }
-            QPushButton:disabled { color: #a0a0a5; background-color: #f9f9f9; border-color: #e0e0e5; }
-        )";
-    }
-
-    qApp->setStyleSheet(qssString);
+    qApp->setStyleSheet(Theme::styleSheet(themeName, m_appDefaultQss));
 }
 
 void MainWindow::dockInit()
