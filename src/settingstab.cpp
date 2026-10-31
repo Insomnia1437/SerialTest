@@ -19,6 +19,7 @@ SettingsTab::SettingsTab(QWidget *parent) :
     ui(new Ui::SettingsTab)
 {
     ui->setupUi(this);
+    ui->appearanceGridLayout->setColumnStretch(1, 1);
 
 #ifdef Q_OS_ANDROID
     ui->opacityWidget->hide();

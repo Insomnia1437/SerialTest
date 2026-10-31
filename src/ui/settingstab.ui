@@ -100,6 +100,9 @@
             <property name="text">
              <string notr="true">Path</string>
             </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
             <property name="textInteractionFlags">
              <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
             </property>
@@ -318,46 +321,55 @@ If no config file is detected, This app will create one in the current working d
            </widget>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <item>
+           <layout class="QGridLayout" name="appearanceGridLayout">
+            <property name="horizontalSpacing">
+             <number>6</number>
+            </property>
+            <property name="verticalSpacing">
+             <number>6</number>
+            </property>
+            <item row="0" column="0">
              <widget class="QLabel" name="label_9">
               <property name="text">
                <string>Theme:</string>
               </property>
              </widget>
             </item>
-            <item>
+            <item row="0" column="1" colspan="2">
              <widget class="QComboBox" name="Theme_nameBox">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                <horstretch>0</horstretch>
+                <horstretch>1</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
              </widget>
             </item>
-            <item>
+            <item row="0" column="3">
              <widget class="QPushButton" name="Theme_setButton">
               <property name="text">
                <string>Set</string>
               </property>
              </widget>
             </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_7">
-            <item>
+            <item row="1" column="0">
              <widget class="QLabel" name="label_3">
               <property name="text">
                <string>Global Font:</string>
               </property>
              </widget>
             </item>
-            <item>
-             <widget class="QFontComboBox" name="Font_nameBox"/>
+            <item row="1" column="1">
+             <widget class="QFontComboBox" name="Font_nameBox">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>1</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
             </item>
-            <item>
+            <item row="1" column="2">
              <widget class="QSpinBox" name="Font_sizeBox">
               <property name="minimum">
                <number>1</number>
@@ -370,28 +382,31 @@ If no config file is detected, This app will create one in the current working d
               </property>
              </widget>
             </item>
-            <item>
+            <item row="1" column="3">
              <widget class="QPushButton" name="Font_setButton">
               <property name="text">
                <string>Set</string>
               </property>
              </widget>
             </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_8">
-            <item>
+            <item row="2" column="0">
              <widget class="QLabel" name="label_4">
               <property name="text">
                <string>Data Font:</string>
               </property>
              </widget>
             </item>
-            <item>
-             <widget class="QFontComboBox" name="DataFont_nameBox"/>
+            <item row="2" column="1">
+             <widget class="QFontComboBox" name="DataFont_nameBox">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>1</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
             </item>
-            <item>
+            <item row="2" column="2">
              <widget class="QSpinBox" name="DataFont_sizeBox">
               <property name="minimum">
                <number>1</number>
@@ -404,7 +419,7 @@ If no config file is detected, This app will create one in the current working d
               </property>
              </widget>
             </item>
-            <item>
+            <item row="2" column="3">
              <widget class="QPushButton" name="DataFont_setButton">
               <property name="text">
                <string>Set</string>

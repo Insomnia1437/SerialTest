@@ -111,13 +111,11 @@ void ControlItem::on_confButton_clicked()
     {
         ui->confButton->setText("<");
         ui->confGrp->setVisible(true);
-        ui->mainGrp->setVisible(false);
     }
     else
     {
         ui->confButton->setText(">");
         ui->confGrp->setVisible(false);
-        ui->mainGrp->setVisible(true);
     }
 }
 

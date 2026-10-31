@@ -144,4 +144,10 @@ QGroupBox::title {
     padding: 0 4px;
 }
 
+/* ControlItem name editor */
+QLineEdit#nameEdit {
+    background-color: transparent;
+    border-color: transparent;
+}
+
 

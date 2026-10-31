@@ -11,10 +11,15 @@
 #include <QPlainTextEdit>
 #include <QLineEdit>
 #include <QCheckBox>
+#include <QRadioButton>
+#include <QFontComboBox>
+#include <QSpinBox>
+#include <QJsonObject>
 
 #include "mainwindow.h"
 #include "datatab.h"
 #include "plottab.h"
+#include "controlitem.h"
 #include "mysettings.h"
 
 class UiSmokeTest : public QObject
@@ -187,6 +192,133 @@ private slots:
         QVERIFY(!plot_advancedWidget->isVisible());
     }
 
+    void testControlTabInteractions()
+    {
+        m_window->showUpTab(3);
+        QTest::qWait(50);
+
+        QPushButton* addCmdBtn = m_window->findChild<QPushButton*>("ctrl_addCMDButton");
+        QPushButton* addSliderBtn = m_window->findChild<QPushButton*>("ctrl_addSliderButton");
+        QPushButton* addCheckBoxBtn = m_window->findChild<QPushButton*>("ctrl_addCheckBoxButton");
+        QPushButton* addSpinBoxBtn = m_window->findChild<QPushButton*>("ctrl_addSpinBoxButton");
+        QVERIFY(addCmdBtn != nullptr);
+        QVERIFY(addSliderBtn != nullptr);
+        QVERIFY(addCheckBoxBtn != nullptr);
+        QVERIFY(addSpinBoxBtn != nullptr);
+
+        QWidget* ctrlContents = m_window->findChild<QWidget*>("ctrl_itemContents");
+        QVERIFY(ctrlContents != nullptr);
+
+        int countBefore = ctrlContents->findChildren<ControlItem*>(QString(), Qt::FindDirectChildrenOnly).count();
+        addCmdBtn->click();
+        addSliderBtn->click();
+        addCheckBoxBtn->click();
+        addSpinBoxBtn->click();
+        QTest::qWait(50);
+
+        QList<ControlItem*> items = ctrlContents->findChildren<ControlItem*>(QString(), Qt::FindDirectChildrenOnly);
+        QCOMPARE(items.count(), countBefore + 4);
+
+        ControlItem* item0 = items.at(countBefore);
+        QPushButton* confBtn0 = item0->findChild<QPushButton*>("confButton");
+        QWidget* confGrp0 = item0->findChild<QWidget*>("confGrp");
+        QVERIFY(confBtn0 != nullptr);
+        QVERIFY(confGrp0 != nullptr);
+
+        confBtn0->click();
+        QTest::qWait(50);
+        QVERIFY(confGrp0->isVisible());
+
+        QLineEdit* nameEdit = item0->findChild<QLineEdit*>("nameEdit");
+        QLineEdit* cmdEdit = item0->findChild<QLineEdit*>("CMDEdit");
+        QCheckBox* prefixBox = item0->findChild<QCheckBox*>("prefixBox");
+        QLineEdit* prefixEdit = item0->findChild<QLineEdit*>("prefixEdit");
+        QCheckBox* suffixBox = item0->findChild<QCheckBox*>("suffixBox");
+        QLineEdit* suffixEdit = item0->findChild<QLineEdit*>("suffixEdit");
+        QVERIFY(nameEdit != nullptr);
+        QVERIFY(cmdEdit != nullptr);
+        QVERIFY(prefixBox != nullptr);
+        QVERIFY(prefixEdit != nullptr);
+        QVERIFY(suffixBox != nullptr);
+        QVERIFY(suffixEdit != nullptr);
+
+        nameEdit->setText("TestCMD");
+        cmdEdit->setText("AT+PING");
+        prefixBox->setChecked(true);
+        prefixEdit->setText(">>");
+        suffixBox->setChecked(true);
+        suffixEdit->setText("\\r\\n");
+
+        QJsonObject saved = item0->save();
+        QCOMPARE(saved["name"].toString(), QString("TestCMD"));
+        QCOMPARE(saved["content"].toString(), QString("AT+PING"));
+        QCOMPARE(saved["prefixEnabled"].toBool(), true);
+        QCOMPARE(saved["prefix"].toString(), QString(">>"));
+        QCOMPARE(saved["suffixEnabled"].toBool(), true);
+        QCOMPARE(saved["suffix"].toString(), QString("\\r\\n"));
+
+        ControlItem reloadItem(ControlItem::Command);
+        reloadItem.load(saved);
+        QJsonObject reSaved = reloadItem.save();
+        QCOMPARE(saved, reSaved);
+    }
+
+    void testFileTabInteractions()
+    {
+        m_window->showUpTab(4);
+        QTest::qWait(50);
+
+        QRadioButton* sendMode = m_window->findChild<QRadioButton*>("sendModeButton");
+        QRadioButton* recvMode = m_window->findChild<QRadioButton*>("receiveModeButton");
+        QPushButton* tipsBtn = m_window->findChild<QPushButton*>("tipsButton");
+        QPushButton* tipsBackBtn = m_window->findChild<QPushButton*>("tipsBackButton");
+        QStackedWidget* stackedWidget = m_window->findChild<QStackedWidget*>("stackedWidget");
+
+        QVERIFY(sendMode != nullptr);
+        QVERIFY(recvMode != nullptr);
+        QVERIFY(tipsBtn != nullptr);
+        QVERIFY(tipsBackBtn != nullptr);
+        QVERIFY(stackedWidget != nullptr);
+
+        recvMode->click();
+        QTest::qWait(50);
+        sendMode->click();
+        QTest::qWait(50);
+
+        tipsBtn->click();
+        QTest::qWait(50);
+        QCOMPARE(stackedWidget->currentIndex(), 1);
+
+        tipsBackBtn->click();
+        QTest::qWait(50);
+        QCOMPARE(stackedWidget->currentIndex(), 0);
+    }
+
+    void testSettingsTabInteractions()
+    {
+        m_window->showUpTab(5);
+        QTest::qWait(50);
+
+        QComboBox* themeBox = m_window->findChild<QComboBox*>("Theme_nameBox");
+        QFontComboBox* fontBox = m_window->findChild<QFontComboBox*>("Font_nameBox");
+        QSpinBox* fontSizeBox = m_window->findChild<QSpinBox*>("Font_sizeBox");
+        QPushButton* fontSetBtn = m_window->findChild<QPushButton*>("Font_setButton");
+
+        QVERIFY(themeBox != nullptr);
+        QVERIFY(fontBox != nullptr);
+        QVERIFY(fontSizeBox != nullptr);
+        QVERIFY(fontSetBtn != nullptr);
+
+        int origSize = fontSizeBox->value();
+        fontSizeBox->setValue(12);
+        fontSetBtn->click();
+        QTest::qWait(50);
+
+        fontSizeBox->setValue(origSize);
+        fontSetBtn->click();
+        QTest::qWait(50);
+    }
+
     void captureScreenshots()
     {
         if(m_screenshotDir.isEmpty())
@@ -241,6 +373,43 @@ private slots:
                     QTest::qWait(100);
                     if(fitX) fitX->click();
                     if(fitY) fitY->click();
+                }
+            }
+            else if(i == 3)
+            {
+                QWidget* ctrlContents = m_window->findChild<QWidget*>("ctrl_itemContents");
+                if(ctrlContents)
+                {
+                    QList<ControlItem*> items = ctrlContents->findChildren<ControlItem*>(QString(), Qt::FindDirectChildrenOnly);
+                    if(items.isEmpty())
+                    {
+                        QPushButton* addCmdBtn = m_window->findChild<QPushButton*>("ctrl_addCMDButton");
+                        QPushButton* addSliderBtn = m_window->findChild<QPushButton*>("ctrl_addSliderButton");
+                        QPushButton* addCheckBoxBtn = m_window->findChild<QPushButton*>("ctrl_addCheckBoxButton");
+                        QPushButton* addSpinBoxBtn = m_window->findChild<QPushButton*>("ctrl_addSpinBoxButton");
+                        if(addCmdBtn) addCmdBtn->click();
+                        if(addSliderBtn) addSliderBtn->click();
+                        if(addCheckBoxBtn) addCheckBoxBtn->click();
+                        if(addSpinBoxBtn) addSpinBoxBtn->click();
+                        items = ctrlContents->findChildren<ControlItem*>(QString(), Qt::FindDirectChildrenOnly);
+                    }
+                    if(!items.isEmpty())
+                    {
+                        QPushButton* confBtn = items.at(0)->findChild<QPushButton*>("confButton");
+                        QWidget* confGrp = items.at(0)->findChild<QWidget*>("confGrp");
+                        if(confBtn && confGrp && !confGrp->isVisible())
+                        {
+                            confBtn->click();
+                        }
+                    }
+                }
+            }
+            else if(i == 4)
+            {
+                QLineEdit* filePathEdit = m_window->findChild<QLineEdit*>("filePathEdit");
+                if(filePathEdit)
+                {
+                    filePathEdit->setText("/path/to/firmware_v1.0.bin");
                 }
             }
             QTest::qWait(100);

@@ -31,6 +31,7 @@ CtrlTab::CtrlTab(QWidget *parent) :
     commentRegExp->optimize();
 
     ui->ctrl_dataEdit->hide();
+    ui->verticalLayout->setStretchFactor(ui->ctrl_itemArea, 1);
 }
 
 CtrlTab::~CtrlTab()

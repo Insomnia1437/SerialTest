@@ -147,3 +147,18 @@ QSplitter::handle:hover {
     background-color: #007acc;
 }
 
+/* ControlItem name editor */
+QLineEdit#nameEdit {
+    background-color: transparent;
+    border-color: transparent;
+}
+
+QLineEdit#nameEdit:hover {
+    border-color: #c0c0c5;
+}
+
+QLineEdit#nameEdit:focus {
+    background-color: #ffffff;
+    border-color: #007acc;
+}
+
