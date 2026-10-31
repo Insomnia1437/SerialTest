@@ -28,27 +28,30 @@ QDockWidget {
     background-color: #005a9e;
 }
 
-QTabBar {
+/* QMainWindow Dock tabs */
+QMainWindow#MainWindow QTabBar {
     background-color: #f3f3f5;
 }
 
-QTabBar::tab {
+QMainWindow#MainWindow QTabBar::tab:top {
     background-color: #e8e8ec;
     color: #606065;
     border-bottom: 3px solid transparent;
 }
 
-QTabBar::tab:selected {
+QMainWindow#MainWindow QTabBar::tab:top:selected {
     background-color: #f3f3f5;
     color: #007acc;
     border-bottom: 3px solid #007acc;
 }
 
-QTabBar::tab:hover:!selected {
+QMainWindow#MainWindow QTabBar::tab:top:hover:!selected {
     background-color: #dddde2;
     color: #202025;
+    border-bottom: 3px solid transparent;
 }
 
+/* ScrollBars */
 QScrollBar:vertical, QScrollBar:horizontal {
     background: #f3f3f5;
 }
@@ -61,20 +64,63 @@ QScrollBar::handle:vertical:hover, QScrollBar::handle:horizontal:hover {
     background: #a8a8ad;
 }
 
+/* Controls */
 QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox {
     background-color: #ffffff;
     color: #202020;
-    border: 1px solid #c0c0c5;
+    border-color: #c0c0c5;
 }
 
-QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus {
-    border: 1px solid #007acc;
+QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus,
+QLineEdit:hover, QComboBox:hover, QSpinBox:hover, QDoubleSpinBox:hover {
+    border-color: #007acc;
 }
 
+QLineEdit:disabled, QComboBox:disabled, QSpinBox:disabled, QDoubleSpinBox:disabled {
+    background-color: #f9f9f9;
+    color: #a0a0a5;
+    border-color: #e0e0e5;
+}
+
+/* ComboBox dropdown */
+QComboBox::drop-down {
+    background-color: transparent;
+}
+
+QComboBox::down-arrow {
+    image: url(":/qss_icons/light/rc/arrow_down.png");
+}
+
+QComboBox::down-arrow:disabled {
+    image: url(":/qss_icons/light/rc/arrow_down_disabled.png");
+}
+
+/* SpinBox arrows */
+QAbstractSpinBox::up-button, QAbstractSpinBox::down-button {
+    background-color: transparent;
+}
+
+QAbstractSpinBox::up-arrow {
+    image: url(":/qss_icons/light/rc/arrow_up.png");
+}
+
+QAbstractSpinBox::up-arrow:disabled {
+    image: url(":/qss_icons/light/rc/arrow_up_disabled.png");
+}
+
+QAbstractSpinBox::down-arrow {
+    image: url(":/qss_icons/light/rc/arrow_down.png");
+}
+
+QAbstractSpinBox::down-arrow:disabled {
+    image: url(":/qss_icons/light/rc/arrow_down_disabled.png");
+}
+
+/* Buttons */
 QPushButton {
     background-color: #ffffff;
     color: #202020;
-    border: 1px solid #c0c0c5;
+    border-color: #c0c0c5;
 }
 
 QPushButton:hover {

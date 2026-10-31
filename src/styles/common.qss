@@ -1,28 +1,30 @@
+/* Title bar and Dock Back button */
 #dockTitleBar {
     min-height: 32px;
 }
 
 #dockTitleLabel {
     font-weight: bold;
-    font-size: 12px;
 }
 
 #dockBackButton {
     border: none;
     border-radius: 4px;
     padding: 4px 10px;
-    font-size: 11px;
     font-weight: bold;
 }
 
-QTabBar::tab {
-    padding: 10px 24px;
+/* Dock tabs in QMainWindow */
+QMainWindow#MainWindow QTabBar::tab:top {
+    min-height: 24px;
     min-width: 90px;
+    padding: 8px 18px;
     border: none;
-    font-size: 12px;
+    border-bottom: 3px solid transparent;
     font-weight: bold;
 }
 
+/* Scrollbars */
 QScrollBar:vertical {
     border: none;
     width: 10px;
@@ -53,15 +55,70 @@ QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
     background: none;
 }
 
+/* Unified control dimensions (height ~32-36px with default font, radius 5px) */
 QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox {
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 12px;
+    min-height: 24px;
+    border-radius: 5px;
+    padding: 3px 8px;
+    border-width: 1px;
+    border-style: solid;
 }
 
 QPushButton {
-    border-radius: 6px;
-    padding: 6px 16px;
+    min-height: 24px;
+    border-radius: 5px;
+    padding: 3px 14px;
+    border-width: 1px;
+    border-style: solid;
     font-weight: bold;
-    font-size: 12px;
+}
+
+/* Prevent inner line edits from duplicating border/padding */
+QComboBox QLineEdit, QAbstractSpinBox QLineEdit {
+    border: none;
+    background: transparent;
+    padding: 0px;
+    margin: 0px;
+}
+
+/* ComboBox dropdown button & arrow */
+QComboBox {
+    padding-right: 24px;
+}
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 24px;
+    border-left: 1px solid transparent;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+QComboBox::down-arrow {
+    width: 12px;
+    height: 12px;
+}
+
+/* SpinBox buttons & arrows */
+QAbstractSpinBox {
+    padding-right: 20px;
+}
+
+QAbstractSpinBox::up-button {
+    subcontrol-origin: border;
+    subcontrol-position: top right;
+    width: 20px;
+    border-bottom: 1px solid transparent;
+}
+
+QAbstractSpinBox::down-button {
+    subcontrol-origin: border;
+    subcontrol-position: bottom right;
+    width: 20px;
+}
+
+QAbstractSpinBox::up-arrow, QAbstractSpinBox::down-arrow {
+    width: 10px;
+    height: 10px;
 }

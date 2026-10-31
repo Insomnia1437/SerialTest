@@ -216,6 +216,7 @@ void MainWindow::onStateButtonClicked()
 void MainWindow::initUI()
 {
     statusBar()->addPermanentWidget(stateButton, 0);
+    connArgsLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     statusBar()->addPermanentWidget(connArgsLabel, 1);
     statusBar()->addPermanentWidget(RxLabel, 0);
     statusBar()->addPermanentWidget(TxLabel, 0);
@@ -251,7 +252,6 @@ void MainWindow::initUI()
     dockInit();
 #endif
 
-    stateButton->setMinimumHeight(1);
     stateButton->setStyleSheet("*{text-align:left;}");
 
     updateStatusBar();
@@ -351,6 +351,7 @@ void MainWindow::updateStatusBar()
         connArgsText.append((tr("Remote") + ": (%1, %2) ").arg(netArg.remoteName).arg(netArg.remotePort));
     }
     connArgsLabel->setText(connArgsText);
+    connArgsLabel->setToolTip(connArgsText);
     Connection::State currState = IOConnection->state();
     if(currState == Connection::Connected)
         stateButton->setText(tr("State") + ": OK");
@@ -626,7 +627,7 @@ void MainWindow::dockInit()
         connect(dock, &QDockWidget::topLevelChanged, this, &MainWindow::onDockTopLevelChanged);
         dock->installEventFilter(this);
         addDockWidget(Qt::BottomDockWidgetArea, dock);
-        setTabPosition(Qt::BottomDockWidgetArea, QTabWidget::North);
+        setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
         if(!dockList.isEmpty())
             tabifyDockWidget(dockList[0], dock);
         dockList.append(dock);

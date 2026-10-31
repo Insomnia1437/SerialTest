@@ -237,6 +237,9 @@ jobs:
           xvfb-run -a ./build/ui-smoke/SerialTest --theme="qdss_light" --lang="en" --screenshot-dir="ui-screenshots"
           xvfb-run -a ./build/ui-smoke/SerialTest --theme="qdss_dark" --lang="en" --screenshot-dir="ui-screenshots"
           xvfb-run -a ./build/ui-smoke/SerialTest --theme="qdss_light" --lang="zh_CN" --screenshot-dir="ui-screenshots"
+          xvfb-run -a ./build/ui-smoke/SerialTest --theme="qdss_light" --lang="zh_CN" --width=1000 --height=700 --font-size=12 --prefix="1000x700_zh_CN_light_12pt" --screenshot-dir="ui-screenshots"
+          QT_SCALE_FACTOR=1.5 xvfb-run -a ./build/ui-smoke/SerialTest --theme="qdss_dark" --lang="en" --font-size=14 --prefix="scale1.5_en_dark_14pt" --screenshot-dir="ui-screenshots"
+          QT_SCALE_FACTOR=2.0 xvfb-run -a ./build/ui-smoke/SerialTest --theme="qdss_dark" --lang="en" --font-size=14 --prefix="scale2.0_en_dark_14pt" --screenshot-dir="ui-screenshots"
 
       - name: Upload UI Screenshots
         if: always()
