@@ -8,6 +8,7 @@ on:
     branches:
       - master
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -88,6 +89,19 @@ jobs:
           Copy-Item -Path "LICENSE.GPL" -Destination $pkgDir
           Compress-Archive -Path "$pkgDir\*" -DestinationPath "SerialTest-Windows-x64.zip"
 
+      - name: Smoke check packaged application
+        shell: pwsh
+        run: |
+          $testDir = "test-pkg"
+          Expand-Archive -Path "SerialTest-Windows-x64.zip" -DestinationPath $testDir
+          $proc = Start-Process -FilePath "$testDir\SerialTest.exe" -ArgumentList "--config-path $testDir\test_pref.ini" -PassThru
+          Start-Sleep -Seconds 3
+          if ($proc.HasExited) {
+            Write-Error "SerialTest.exe exited prematurely with code $($proc.ExitCode)"
+            exit 1
+          }
+          Stop-Process -Id $proc.Id -Force
+
       - name: Upload Windows Artifact
         uses: actions/upload-artifact@v6
         with:
@@ -146,6 +160,20 @@ jobs:
           macdeployqt build/ci/SerialTest.app -dmg
           mv build/ci/SerialTest.dmg ./SerialTest-macOS-arm64.dmg
 
+      - name: Smoke check packaged application
+        run: |
+          hdiutil attach SerialTest-macOS-arm64.dmg -mountpoint /Volumes/SerialTestMount
+          /Volumes/SerialTestMount/SerialTest.app/Contents/MacOS/SerialTest --config-path "$HOME/test_pref.ini" &
+          APP_PID=$!
+          sleep 3
+          if ! kill -0 $APP_PID 2>/dev/null; then
+            echo "SerialTest crashed or exited prematurely"
+            hdiutil detach /Volumes/SerialTestMount || true
+            exit 1
+          fi
+          kill -9 $APP_PID 2>/dev/null || true
+          hdiutil detach /Volumes/SerialTestMount
+
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v6
         with:
@@ -201,6 +229,10 @@ jobs:
           gcc --version
           uname -m
 
+      - name: Compile translations
+        run: |
+          lrelease src/SerialTest.pro
+
       - name: Build
         run: |
           mkdir -p build/ci
@@ -214,6 +246,19 @@ jobs:
           cp build/ci/SerialTest package/linux/SerialTest/
           cp README.md LICENSE.MIT LICENSE.GPL package/linux/SerialTest/
           tar -czf SerialTest-Ubuntu-24.04-x86_64.tar.gz -C package/linux SerialTest
+
+      - name: Smoke check packaged application
+        run: |
+          tar -xzf SerialTest-Ubuntu-24.04-x86_64.tar.gz -C /tmp/
+          touch /tmp/test_pref.ini
+          xvfb-run -a /tmp/SerialTest/SerialTest --config-path /tmp/test_pref.ini &
+          APP_PID=$!
+          sleep 3
+          if ! kill -0 $APP_PID 2>/dev/null; then
+            echo "SerialTest package crashed or exited prematurely"
+            exit 1
+          fi
+          kill -9 $APP_PID 2>/dev/null || true
 
       - name: Upload Linux Artifact
         uses: actions/upload-artifact@v6
@@ -249,3 +294,10 @@ jobs:
           path: ui-screenshots/
           retention-days: 7
           if-no-files-found: error
+
+      - name: Upload Compiled Translations
+        uses: actions/upload-artifact@v6
+        with:
+          name: qm-translations
+          path: src/i18n/*.qm
+          retention-days: 7

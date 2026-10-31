@@ -25,147 +25,13 @@ on:
 permissions:
   contents: write
 
-env:
-  QT_VERSION: '6.11.1'
-  QT_MODULES: 'qt5compat qtserialport qtconnectivity'
-
 jobs:
-  build-windows:
-    runs-on: windows-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v5
-        with:
-          fetch-tags: true
-
-      - name: Install Qt (via aqt with Qt 6.11 fix)
-        shell: pwsh
-        run: |
-          # Install aqt with Qt 6.11 directory structure fix (PR#1000)
-          pip install "git+https://github.com/miurahr/aqtinstall.git@refs/pull/1000/head" --quiet
-          $qtDir = "C:\Qt"
-          python -m aqt install-qt windows desktop $env:QT_VERSION win64_msvc2022_64 `
-            --outputdir $qtDir `
-            --modules $env:QT_MODULES
-          # Add Qt to PATH
-          $qtBin = "$qtDir\$env:QT_VERSION\msvc2022_64\bin"
-          echo "$qtBin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          echo "Qt6_DIR=$qtDir\$env:QT_VERSION\msvc2022_64\lib\cmake\Qt6" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "QT_ROOT_DIR=$qtDir\$env:QT_VERSION\msvc2022_64" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-      - name: Set up Visual Studio shell
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
-
-      - name: Build
-        shell: cmd
-        run: |
-          qmake -r ./src/SerialTest.pro "DEFINES+=_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS"
-          nmake -f Makefile.Release
-
-      - name: Copy DLLs and Package
-        shell: pwsh
-        run: |
-          cd ./release
-          windeployqt ./SerialTest.exe
-          python ../pack/find_dlls.py ./SerialTest.exe
-          Copy-Item -Path "../README.md" -Destination "." -ErrorAction SilentlyContinue
-          Copy-Item -Path "../LICENSE.MIT" -Destination "." -ErrorAction SilentlyContinue
-          Copy-Item -Path "../LICENSE.GPL" -Destination "." -ErrorAction SilentlyContinue
-          cd ..
-          Compress-Archive -Path ./release/* -DestinationPath ./SerialTest-Windows-x64.zip
-
-      - name: Upload Windows Artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: SerialTest-Windows-x64
-          path: ./SerialTest-Windows-x64.zip
-
-  build-macos:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v5
-
-      - name: Install Qt (via aqt with Qt 6.11 fix)
-        run: |
-          # Install aqt with Qt 6.11 directory structure fix (PR#1000)
-          pip install "git+https://github.com/miurahr/aqtinstall.git@refs/pull/1000/head" --quiet --break-system-packages || \
-            pip install "git+https://github.com/miurahr/aqtinstall.git@refs/pull/1000/head" --quiet
-          QT_DIR="$HOME/Qt"
-          python -m aqt install-qt mac desktop ${QT_VERSION} clang_64 \
-            --outputdir "$QT_DIR" \
-            --modules ${QT_MODULES}
-          QT_BIN="$QT_DIR/${QT_VERSION}/macos/bin"
-          echo "$QT_BIN" >> $GITHUB_PATH
-          echo "Qt6_DIR=$QT_DIR/${QT_VERSION}/macos/lib/cmake/Qt6" >> $GITHUB_ENV
-          echo "QT_ROOT_DIR=$QT_DIR/${QT_VERSION}/macos" >> $GITHUB_ENV
-
-      - name: Build
-        run: |
-          mkdir build && cd build
-          qmake -r ../src/SerialTest.pro CONFIG+=app_bundle CONFIG+=sdk_no_version_check
-          make -j$(sysctl -n hw.ncpu)
-
-      - name: Package
-        run: |
-          macdeployqt build/SerialTest.app -dmg
-          mv build/SerialTest.dmg ./SerialTest-macOS.dmg
-
-      - name: Upload macOS Artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: SerialTest-macOS
-          path: ./SerialTest-macOS.dmg
-
-  build-linux:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v5
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential libgl1-mesa-dev libxkbcommon-dev libegl1-mesa-dev
-
-      - name: Install Qt (via aqt with Qt 6.11 fix)
-        run: |
-          # Install aqt with Qt 6.11 directory structure fix (PR#1000)
-          pip install "git+https://github.com/miurahr/aqtinstall.git@refs/pull/1000/head" --quiet
-          QT_DIR="$HOME/Qt"
-          python -m aqt install-qt linux desktop ${QT_VERSION} gcc_64 \
-            --outputdir "$QT_DIR" \
-            --modules ${QT_MODULES}
-          QT_BIN="$QT_DIR/${QT_VERSION}/gcc_64/bin"
-          echo "$QT_BIN" >> $GITHUB_PATH
-          echo "Qt6_DIR=$QT_DIR/${QT_VERSION}/gcc_64/lib/cmake/Qt6" >> $GITHUB_ENV
-          echo "QT_ROOT_DIR=$QT_DIR/${QT_VERSION}/gcc_64" >> $GITHUB_ENV
-          echo "LD_LIBRARY_PATH=$QT_DIR/${QT_VERSION}/gcc_64/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
-
-      - name: Build
-        run: |
-          mkdir build && cd build
-          qmake ../src/SerialTest.pro
-          make -j$(nproc)
-
-      - name: Package
-        run: |
-          mkdir -p release
-          cp build/SerialTest release/
-          cp README.md LICENSE.MIT LICENSE.GPL release/ 2>/dev/null || true
-          tar -czf SerialTest-Linux-x86_64.tar.gz release/
-
-      - name: Upload Linux Artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: SerialTest-Linux-x86_64
-          path: ./SerialTest-Linux-x86_64.tar.gz
+  build:
+    uses: ./.github/workflows/build.yml
 
   publish-release:
-    needs: [build-windows, build-macos, build-linux]
-    runs-on: ubuntu-latest
+    needs: [build]
+    runs-on: ubuntu-24.04
     if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Determine Release Tag
@@ -186,22 +52,22 @@ jobs:
       - name: Download macOS Artifact
         uses: actions/download-artifact@v6
         with:
-          name: SerialTest-macOS
+          name: SerialTest-macOS-arm64
           path: .
           merge-multiple: true
 
       - name: Download Linux Artifact
         uses: actions/download-artifact@v6
         with:
-          name: SerialTest-Linux-x86_64
+          name: SerialTest-Ubuntu-24.04-x86_64
           path: .
           merge-multiple: true
 
       - name: Rename artifacts with version suffix
         run: |
           mv SerialTest-Windows-x64.zip SerialTest-Windows-x64-${{ env.RELEASE_TAG }}.zip
-          mv SerialTest-macOS.dmg SerialTest-macOS-${{ env.RELEASE_TAG }}.dmg
-          mv SerialTest-Linux-x86_64.tar.gz SerialTest-Linux-x86_64-${{ env.RELEASE_TAG }}.tar.gz
+          mv SerialTest-macOS-arm64.dmg SerialTest-macOS-arm64-${{ env.RELEASE_TAG }}.dmg
+          mv SerialTest-Ubuntu-24.04-x86_64.tar.gz SerialTest-Ubuntu-24.04-x86_64-${{ env.RELEASE_TAG }}.tar.gz
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -212,7 +78,7 @@ jobs:
           prerelease: ${{ github.event.inputs.prerelease || false }}
           files: |
             SerialTest-Windows-x64-${{ env.RELEASE_TAG }}.zip
-            SerialTest-macOS-${{ env.RELEASE_TAG }}.dmg
-            SerialTest-Linux-x86_64-${{ env.RELEASE_TAG }}.tar.gz
+            SerialTest-macOS-arm64-${{ env.RELEASE_TAG }}.dmg
+            SerialTest-Ubuntu-24.04-x86_64-${{ env.RELEASE_TAG }}.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,27 +1,21 @@
 # SerialTest
 [![downloads](https://img.shields.io/github/downloads/wh201906/SerialTest/total?label=GitHub%20release%20downloads)](https://github.com/wh201906/SerialTest/releases)  [![downloads](https://img.shields.io/sourceforge/dt/serialtest.svg?label=SourceForge%20downloads)](https://sourceforge.net/projects/serialtest/)  [![installs](https://img.shields.io/flathub/downloads/io.github.wh201906.serialtest?label=Flathub%20installs)](https://flathub.org/apps/io.github.wh201906.serialtest)  [![translation](https://hosted.weblate.org/widgets/serialtest/-/svg-badge.svg)](https://hosted.weblate.org/engage/serialtest/)  
-[![Windows CI(MinGW-w64)](https://github.com/wh201906/SerialTest/actions/workflows/build-windows-mingw.yml/badge.svg)](https://github.com/wh201906/SerialTest/actions/workflows/build-windows-mingw.yml)  [![Windows CI(MSVC)](https://github.com/wh201906/SerialTest/actions/workflows/build-windows-msvc.yml/badge.svg)](https://github.com/wh201906/SerialTest/actions/workflows/build-windows-msvc.yml)  [![macOS CI](https://github.com/wh201906/SerialTest/actions/workflows/build-macos.yml/badge.svg)](https://github.com/wh201906/SerialTest/actions/workflows/build-macos.yml)  
+[![Build](https://github.com/Insomnia1437/SerialTest/actions/workflows/build.yml/badge.svg)](https://github.com/Insomnia1437/SerialTest/actions/workflows/build.yml)  
 A versatile test tool running on Windows/Linux/macOS. (Note: Android support is deprecated and will be removed in future versions.)  
 Works as data transceiver/realtime plotter/shortcut/file transceiver.  
 Supports serial port, Bluetooth SPP client/server, Bluetooth LE client, TCP client/server, UDP.  
 
 [中文介绍](doc/README/README_zh_CN.md)  
 
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Get it on F-Droid"
-     height="80">](https://f-droid.org/packages/priv.wh201906.serialtest/)  
-[<img src="https://flathub.org/assets/badges/flathub-badge-en.png"
-     alt="Download on Flathub"
-     height="60">](https://flathub.org/apps/io.github.wh201906.serialtest)  
+## Platform Baselines & Support
 
-## Features
 <details>
-<summary>Cross-platform</summary>
+<summary>Cross-platform Matrix</summary>
 
-+ Supports Windows 7 and later
-+ Supports [most Linux distros](https://flathub.org/setup)
-+ Supports macOS 10.13 (High Sierra) and later
-+ Supports Android 5.0 (Lollipop) and later
++ **Windows**: Windows 10/11 x86_64. Built with MSVC 2022 and Qt 6.11.1. Delivered as an unsigned portable zip package; requires Microsoft Visual C++ 2015-2022 Redistributable installed if not already present on system.
++ **macOS**: macOS 26.0+ (Sonoma / Sequoia) arm64 Apple Silicon. Delivered as an unsigned DMG installer.
++ **Linux**: Ubuntu 24.04 LTS x86_64. Delivered as an application archive; requires system runtime libraries compatible with Qt 6.11.1 (`libgl1`, `libxkbcommon`, `libxcb-*`).
++ **Android**: Deprecated and will be removed in future versions.
 
 </details>
 
@@ -203,57 +197,42 @@ Supports serial port, Bluetooth SPP client/server, Bluetooth LE client, TCP clie
 You can write programs on MCU according to the demos in the [demo/](https://github.com/wh201906/SerialTest/tree/master/demo) folder  
 [Demo README](demo/README.md)  
 
-## Binaries for Windows, Android and macOS
-You can download pre-built binaries and Android APK in [release](https://github.com/wh201906/SerialTest/releases) page.  
+## Pre-built Binaries and CI Artifacts
 
-You can also download them in SourceForge  
-[![Download SerialTest](https://a.fsdn.com/con/app/sf-download-button)](https://sourceforge.net/projects/serialtest/files/latest/download)  
+You can download release builds from the [GitHub Releases](https://github.com/Insomnia1437/SerialTest/releases) page or download the latest test artifacts directly from [GitHub Actions Builds](https://github.com/Insomnia1437/SerialTest/actions/workflows/build.yml):
+- **Windows (x64)**: `SerialTest-Windows-x64.zip` (Requires Microsoft Visual C++ 2015-2022 Redistributable)
+- **macOS (arm64)**: `SerialTest-macOS-arm64.dmg` (Unsigned DMG for Apple Silicon macOS 26.0+)
+- **Linux (Ubuntu 24.04 x86_64)**: `SerialTest-Ubuntu-24.04-x86_64.tar.gz` (Requires Qt 6.11.1 runtime libraries)
+- **UI Screenshots**: `ui-screenshots` (Verification captures across themes, DPI scales, and window dimensions)
 
-The Android app is available on [F-Droid](https://f-droid.org/packages/priv.wh201906.serialtest/) as well.  
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Get it on F-Droid"
-     height="80">](https://f-droid.org/packages/priv.wh201906.serialtest/)  
+## Building from Source
 
-## Build on Linux
+### Prerequisites
+- Qt 6.11.1 with modules: `qt5compat`, `qtserialport`, `qtconnectivity`
+- C++17 compliant compiler:
+  - Windows: MSVC 2022 (v143) x64
+  - macOS: Apple Clang (Xcode 16+) arm64
+  - Linux: GCC 11+ on Ubuntu 24.04 x86_64
 
-<details>
-<summary>Steps</summary>
+### Build Commands
 
-### 1. Install depencencies
 ```bash
-# sudo add-apt-repository universe
-sudo apt-get update
-# sudo apt-get install git build-essential
-sudo apt-get install qtbase5-dev qt5-qmake libqt5serialport5-dev qtconnectivity5-dev 
-```
-### 2. Get the source code
-```bash
-cd ~
-git clone https://github.com/wh201906/SerialTest.git --depth=1
-cd SerialTest
-mkdir build && cd build
-```
+# Out-of-source build
+mkdir -p build/release
+cd build/release
 
-### 3. Choose how to import QCustomplot 
-#### Use QCustomPlot source file（recommended）  
-You need to [download](https://www.qcustomplot.com/release/2.1.1/QCustomPlot-source.tar.gz) QCustomPlot archive, extract the qcustomplot.cpp and qcustomplot.h in the /src folder(replace the existing qcustomplot.h), then build.  
-```bash
-wget https://www.qcustomplot.com/release/2.1.1/QCustomPlot-source.tar.gz
-tar -xzf QCustomPlot-source.tar.gz
-cp qcustomplot-source/qcustomplot.* ../src
-```
+# Linux
+qmake ../../src/SerialTest.pro CONFIG+=release
+make -j$(nproc)
 
-#### Use QCustomPlot library  
-If the qcustomplot.cpp doesn't exist in the src/ folder, the qmake will try to find the library file(xxx.so/xxx.dll) in the building directory(where you call the qmake command) and the default library directory.  
-### 4. Build and run
-```bash
-export QT_SELECT=qt5
-qmake ../src
-make -j4 && make clean
-./SerialTest 
-```
+# macOS (arm64 bundle)
+qmake ../../src/SerialTest.pro CONFIG+=release CONFIG+=app_bundle QMAKE_APPLE_DEVICE_ARCHS=arm64
+make -j$(sysctl -n hw.ncpu)
 
-</details>
+# Windows (from Visual Studio Developer Command Prompt)
+qmake ..\..\src\SerialTest.pro CONFIG+=release CONFIG-=debug_and_release "DEFINES+=_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS"
+nmake /nologo
+```
 
 ## Install from the Linux software repository
 

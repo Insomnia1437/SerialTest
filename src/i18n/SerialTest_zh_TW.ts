@@ -964,9 +964,9 @@ you can change the remote address and port on the fly.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/filetab.ui" line="295"/>
-        <source>Wait for</source>
-        <translation type="unfinished"></translation>
+        <location filename="../ui/filetab.ui" line="291"/>
+        <source>Wait for:</source>
+        <translation>等待：</translation>
     </message>
     <message>
         <location filename="../ui/filetab.ui" line="357"/>
