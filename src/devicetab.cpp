@@ -312,6 +312,9 @@ void DeviceTab::initUI()
     ui->Net_addrPortList->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->Net_addrPortList->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
 
+    ui->BLECentralListSplitter->setStretchFactor(0, 1);
+    ui->BLECentralListSplitter->setStretchFactor(1, 1);
+
     ui->SP_flowControlBox->addItem(tr("NoFlowControl"), QSerialPort::NoFlowControl);
     ui->SP_flowControlBox->addItem(tr("HardwareControl"), QSerialPort::HardwareControl);
     ui->SP_flowControlBox->addItem(tr("SoftwareControl"), QSerialPort::SoftwareControl);

@@ -557,6 +557,12 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="minimumSize">
+      <size>
+       <width>320</width>
+       <height>0</height>
+      </size>
+     </property>
      <property name="title">
       <string>Connect</string>
      </property>
@@ -587,6 +593,9 @@
            <widget class="QScrollArea" name="SP_argsScrollArea">
             <property name="frameShape">
              <enum>QFrame::NoFrame</enum>
+            </property>
+            <property name="horizontalScrollBarPolicy">
+             <enum>Qt::ScrollBarAlwaysOff</enum>
             </property>
             <property name="widgetResizable">
              <bool>true</bool>
@@ -997,6 +1006,9 @@
             <property name="frameShape">
              <enum>QFrame::NoFrame</enum>
             </property>
+            <property name="horizontalScrollBarPolicy">
+             <enum>Qt::ScrollBarAlwaysOff</enum>
+            </property>
             <property name="widgetResizable">
              <bool>true</bool>
             </property>
@@ -1156,6 +1168,9 @@
            <widget class="QScrollArea" name="Net_argsScrollArea">
             <property name="frameShape">
              <enum>QFrame::NoFrame</enum>
+            </property>
+            <property name="horizontalScrollBarPolicy">
+             <enum>Qt::ScrollBarAlwaysOff</enum>
             </property>
             <property name="widgetResizable">
              <bool>true</bool>
