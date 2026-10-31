@@ -1,17 +1,28 @@
-name: Build
+name: Build and Release
 
 on:
   push:
     branches:
       - '**'
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - master
   workflow_dispatch:
-  workflow_call:
+    inputs:
+      tag_name:
+        description: 'Release Tag (e.g. v0.1.0 or continuous)'
+        required: false
+        type: string
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   QT_VERSION: '6.11.1'
@@ -301,3 +312,72 @@ jobs:
           name: qm-translations
           path: src/i18n/*.qm
           retention-days: 7
+
+  publish-release:
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-24.04
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: write
+    steps:
+      - name: Determine Release Info
+        id: release_info
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.tag_name }}" ]; then
+            echo "tag=${{ inputs.tag_name }}" >> $GITHUB_OUTPUT
+            echo "title=Release ${{ inputs.tag_name }}" >> $GITHUB_OUTPUT
+            echo "prerelease=${{ inputs.prerelease || 'false' }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+            echo "title=Release $TAG" >> $GITHUB_OUTPUT
+            echo "prerelease=false" >> $GITHUB_OUTPUT
+          else
+            echo "tag=continuous" >> $GITHUB_OUTPUT
+            echo "title=Continuous Build" >> $GITHUB_OUTPUT
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v6
+        with:
+          name: SerialTest-Windows-x64
+          path: release-assets/windows
+
+      - name: Download macOS Artifact
+        uses: actions/download-artifact@v6
+        with:
+          name: SerialTest-macOS-arm64
+          path: release-assets/macos
+
+      - name: Download Linux Artifact
+        uses: actions/download-artifact@v6
+        with:
+          name: SerialTest-Ubuntu-24.04-x86_64
+          path: release-assets/linux
+
+      - name: Prepare Release Assets
+        run: |
+          mkdir -p release-dist
+          cp release-assets/windows/SerialTest-Windows-x64.zip release-dist/
+          cp release-assets/macos/SerialTest-macOS-arm64.dmg release-dist/
+          cp release-assets/linux/SerialTest-Ubuntu-24.04-x86_64.tar.gz release-dist/
+          TAG="${{ steps.release_info.outputs.tag }}"
+          if [ "$TAG" != "continuous" ]; then
+            cp release-dist/SerialTest-Windows-x64.zip release-dist/SerialTest-Windows-x64-${TAG}.zip
+            cp release-dist/SerialTest-macOS-arm64.dmg release-dist/SerialTest-macOS-arm64-${TAG}.dmg
+            cp release-dist/SerialTest-Ubuntu-24.04-x86_64.tar.gz release-dist/SerialTest-Ubuntu-24.04-x86_64-${TAG}.tar.gz
+          fi
+          ls -lh release-dist/
+
+      - name: Publish to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_info.outputs.tag }}
+          name: ${{ steps.release_info.outputs.title }}
+          prerelease: ${{ steps.release_info.outputs.prerelease == 'true' }}
+          target_commitish: ${{ github.sha }}
+          generate_release_notes: true
+          files: release-dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
