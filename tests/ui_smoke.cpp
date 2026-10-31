@@ -14,6 +14,7 @@
 
 #include "mainwindow.h"
 #include "datatab.h"
+#include "plottab.h"
 #include "mysettings.h"
 
 class UiSmokeTest : public QObject
@@ -149,6 +150,43 @@ private slots:
         QTest::qWait(20);
     }
 
+    void testPlotTabInteractions()
+    {
+        m_window->showUpTab(2);
+        QTest::qWait(50);
+        PlotTab* plotTab = m_window->findChild<PlotTab*>();
+        QVERIFY(plotTab != nullptr);
+
+        QCheckBox* plot_enaBox = m_window->findChild<QCheckBox*>("plot_enaBox");
+        QVERIFY(plot_enaBox != nullptr);
+        plot_enaBox->setChecked(true);
+        QTest::qWait(50);
+
+        plotTab->newData("12.5\n25.0\n18.3\n35.7\n22.1\n45.0\n30.2\n");
+        QTest::qWait(100);
+
+        QPushButton* fitX = m_window->findChild<QPushButton*>("plot_fitXButton");
+        QPushButton* fitY = m_window->findChild<QPushButton*>("plot_fitYButton");
+        QVERIFY(fitX != nullptr);
+        QVERIFY(fitY != nullptr);
+        fitX->click();
+        fitY->click();
+        QTest::qWait(50);
+
+        QCheckBox* plot_advancedBox = m_window->findChild<QCheckBox*>("plot_advancedBox");
+        QWidget* plot_advancedWidget = m_window->findChild<QWidget*>("plot_advancedWidget");
+        QVERIFY(plot_advancedBox != nullptr);
+        QVERIFY(plot_advancedWidget != nullptr);
+
+        plot_advancedBox->setChecked(true);
+        QTest::qWait(50);
+        QVERIFY(plot_advancedWidget->isVisible());
+
+        plot_advancedBox->setChecked(false);
+        QTest::qWait(50);
+        QVERIFY(!plot_advancedWidget->isVisible());
+    }
+
     void captureScreenshots()
     {
         if(m_screenshotDir.isEmpty())
@@ -190,12 +228,43 @@ private slots:
                     sendEdit->setText("AT+STATUS");
                 }
             }
+            else if(i == 2)
+            {
+                PlotTab* plotTab = m_window->findChild<PlotTab*>();
+                QCheckBox* plot_enaBox = m_window->findChild<QCheckBox*>("plot_enaBox");
+                QPushButton* fitX = m_window->findChild<QPushButton*>("plot_fitXButton");
+                QPushButton* fitY = m_window->findChild<QPushButton*>("plot_fitYButton");
+                if(plotTab && plot_enaBox)
+                {
+                    plot_enaBox->setChecked(true);
+                    plotTab->newData("10.0\n22.5\n15.3\n38.2\n28.4\n45.0\n32.1\n55.4\n40.0\n");
+                    QTest::qWait(100);
+                    if(fitX) fitX->click();
+                    if(fitY) fitY->click();
+                }
+            }
             QTest::qWait(100);
             QApplication::processEvents();
             QPixmap pixmap = m_window->grab();
             QString fileName = QString("%1_page%2.png").arg(prefix, pageNames[i]);
             QString filePath = QDir(m_screenshotDir).filePath(fileName);
             pixmap.save(filePath, "PNG");
+
+            if(i == 2)
+            {
+                QCheckBox* plot_advancedBox = m_window->findChild<QCheckBox*>("plot_advancedBox");
+                if(plot_advancedBox)
+                {
+                    plot_advancedBox->setChecked(true);
+                    QTest::qWait(100);
+                    QApplication::processEvents();
+                    QPixmap advPixmap = m_window->grab();
+                    QString advFileName = QString("%1_page2_plot_advanced.png").arg(prefix);
+                    advPixmap.save(QDir(m_screenshotDir).filePath(advFileName), "PNG");
+                    plot_advancedBox->setChecked(false);
+                    QTest::qWait(50);
+                }
+            }
 
             if(i == 0)
             {

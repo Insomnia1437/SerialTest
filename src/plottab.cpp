@@ -1,4 +1,4 @@
-﻿#include "plottab.h"
+#include "plottab.h"
 #include "ui_plottab.h"
 
 #include "legenditemdialog.h"
@@ -8,6 +8,11 @@ PlotTab::PlotTab(QWidget *parent) :
     ui(new Ui::PlotTab)
 {
     ui->setupUi(this);
+
+    ui->verticalLayout->setStretch(0, 1);
+    ui->verticalLayout->setStretch(1, 0);
+    ui->verticalLayout->setStretch(2, 0);
+    ui->verticalLayout->setStretch(3, 0);
 
     m_randEngine = new std::default_random_engine;
     doubleRegex = new QRegularExpression("-?\\d*\\.?\\d+"); // for +xxxxx and xxxxx. , just get xxxxx
