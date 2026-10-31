@@ -8,8 +8,12 @@
 #include <QPushButton>
 #include <QComboBox>
 #include <QStackedWidget>
+#include <QPlainTextEdit>
+#include <QLineEdit>
+#include <QCheckBox>
 
 #include "mainwindow.h"
+#include "datatab.h"
 #include "mysettings.h"
 
 class UiSmokeTest : public QObject
@@ -114,6 +118,37 @@ private slots:
         QTest::qWait(50);
     }
 
+    void testDataTabInteractions()
+    {
+        m_window->showUpTab(1);
+        QTest::qWait(50);
+        QPlainTextEdit* receivedEdit = m_window->findChild<QPlainTextEdit*>("receivedEdit");
+        QPlainTextEdit* sendedEdit = m_window->findChild<QPlainTextEdit*>("sendedEdit");
+        QVERIFY(receivedEdit != nullptr);
+        QVERIFY(sendedEdit != nullptr);
+
+        DataTab* dataTab = m_window->findChild<DataTab*>();
+        QVERIFY(dataTab != nullptr);
+
+        dataTab->appendReceivedData("Device ready. Temp: 24.5C, Humidity: 60%\n", {});
+        dataTab->appendSendedData("AT+INFO\r\n");
+        QTest::qWait(50);
+
+        QVERIFY(!receivedEdit->toPlainText().isEmpty());
+        QVERIFY(!sendedEdit->toPlainText().isEmpty());
+
+        QPushButton* receivedCopyButton = m_window->findChild<QPushButton*>("receivedCopyButton");
+        QVERIFY(receivedCopyButton != nullptr);
+        receivedCopyButton->click();
+
+        QCheckBox* receivedHexBox = m_window->findChild<QCheckBox*>("receivedHexBox");
+        QVERIFY(receivedHexBox != nullptr);
+        receivedHexBox->click();
+        QTest::qWait(20);
+        receivedHexBox->click();
+        QTest::qWait(20);
+    }
+
     void captureScreenshots()
     {
         if(m_screenshotDir.isEmpty())
@@ -141,6 +176,20 @@ private slots:
         for(int i = 0; i < 6; ++i)
         {
             m_window->showUpTab(i);
+            if(i == 1)
+            {
+                DataTab* dataTab = m_window->findChild<DataTab*>();
+                if(dataTab)
+                {
+                    dataTab->appendReceivedData("Ready for data transfer.\nSensor [0]: Temp=23.4C, Humidity=52%\nSensor [1]: Temp=24.1C, Humidity=50%\n[RAW HEX]: 55 AA 01 02 03 FF 0D 0A\n", {});
+                    dataTab->appendSendedData("AT+GET_DATA\r\n01 03 00 00 00 02 C4 0B\r\n");
+                }
+                QLineEdit* sendEdit = m_window->findChild<QLineEdit*>("sendEdit");
+                if(sendEdit)
+                {
+                    sendEdit->setText("AT+STATUS");
+                }
+            }
             QTest::qWait(100);
             QApplication::processEvents();
             QPixmap pixmap = m_window->grab();

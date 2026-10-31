@@ -35,6 +35,8 @@ DataTab::DataTab(QByteArray* RxBuf, QVector<Metadata>* RxMetadataBuf, QByteArray
 #endif
     repeatTimer = new QTimer();
     RxSlider = ui->receivedEdit->verticalScrollBar();
+    ui->dataTabSplitter->setStretchFactor(0, 2);
+    ui->dataTabSplitter->setStretchFactor(1, 1);
     ui->dataTabSplitter->handle(1)->installEventFilter(this); // the id of the 1st visible handle is 1 rather than 0
 
     connect(ui->sendEdit, &QLineEdit::returnPressed, this, &DataTab::on_sendButton_clicked);
