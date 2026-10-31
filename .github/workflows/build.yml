@@ -1,0 +1,220 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  QT_VERSION: '6.11.1'
+  AQT_INSTALL_COMMIT: '8c3695d4a4e1ceabf6a74dc6c79681656dc6b74b'
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install aqt and query Qt
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install "git+https://github.com/miurahr/aqtinstall.git@${{ env.AQT_INSTALL_COMMIT }}"
+          python --version
+          python -m aqt version
+          python -m aqt list-qt windows desktop --arch ${{ env.QT_VERSION }}
+          python -m aqt list-qt windows desktop --modules ${{ env.QT_VERSION }} win64_msvc2022_64
+
+      - name: Install Qt
+        shell: pwsh
+        run: |
+          $qtDir = "C:\Qt"
+          python -m aqt install-qt windows desktop ${{ env.QT_VERSION }} win64_msvc2022_64 `
+            --outputdir $qtDir `
+            --modules qt5compat qtserialport qtconnectivity
+          $qtBin = "$qtDir\${{ env.QT_VERSION }}\msvc2022_64\bin"
+          echo "$qtBin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "Qt6_DIR=$qtDir\${{ env.QT_VERSION }}\msvc2022_64\lib\cmake\Qt6" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "QT_ROOT_DIR=$qtDir\${{ env.QT_VERSION }}\msvc2022_64" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Set up Visual Studio shell
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+          vsversion: '2022'
+
+      - name: Log toolchain info
+        shell: cmd
+        run: |
+          qmake -v
+          cl
+          windeployqt --version 2>nul || ver
+
+      - name: Build
+        shell: cmd
+        run: |
+          mkdir build\ci
+          cd build\ci
+          qmake ..\..\src\SerialTest.pro CONFIG+=release CONFIG-=debug_and_release "DEFINES+=_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS"
+          nmake /nologo
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path "build\ci" -Filter "SerialTest.exe" -Recurse | Select-Object -First 1 -ExpandProperty FullName
+          if (-not $exe) {
+            Write-Error "SerialTest.exe not found under build/ci"
+            exit 1
+          }
+          $pkgDir = "package\windows"
+          New-Item -ItemType Directory -Path $pkgDir -Force | Out-Null
+          Copy-Item -Path $exe -Destination "$pkgDir\SerialTest.exe"
+          windeployqt --release "$pkgDir\SerialTest.exe"
+          Copy-Item -Path "README.md" -Destination $pkgDir
+          Copy-Item -Path "LICENSE.MIT" -Destination $pkgDir
+          Copy-Item -Path "LICENSE.GPL" -Destination $pkgDir
+          Compress-Archive -Path "$pkgDir\*" -DestinationPath "SerialTest-Windows-x64.zip"
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: SerialTest-Windows-x64
+          path: SerialTest-Windows-x64.zip
+          retention-days: 7
+          if-no-files-found: error
+
+  build-macos:
+    runs-on: macos-26
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install aqt and query Qt
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install "git+https://github.com/miurahr/aqtinstall.git@${{ env.AQT_INSTALL_COMMIT }}"
+          python --version
+          python -m aqt version
+          python -m aqt list-qt mac desktop --arch ${{ env.QT_VERSION }}
+          python -m aqt list-qt mac desktop --modules ${{ env.QT_VERSION }} clang_64
+
+      - name: Install Qt
+        run: |
+          QT_DIR="$HOME/Qt"
+          python -m aqt install-qt mac desktop ${{ env.QT_VERSION }} clang_64 \
+            --outputdir "$QT_DIR" \
+            --modules qt5compat qtserialport qtconnectivity
+          QT_BIN="$QT_DIR/${{ env.QT_VERSION }}/macos/bin"
+          echo "$QT_BIN" >> $GITHUB_PATH
+          echo "Qt6_DIR=$QT_DIR/${{ env.QT_VERSION }}/macos/lib/cmake/Qt6" >> $GITHUB_ENV
+          echo "QT_ROOT_DIR=$QT_DIR/${{ env.QT_VERSION }}/macos" >> $GITHUB_ENV
+
+      - name: Log toolchain info
+        run: |
+          qmake -v
+          clang --version
+          uname -m
+
+      - name: Build
+        run: |
+          mkdir -p build/ci
+          cd build/ci
+          qmake ../../src/SerialTest.pro CONFIG+=release CONFIG+=app_bundle QMAKE_APPLE_DEVICE_ARCHS=arm64
+          make -j2
+
+      - name: Package
+        run: |
+          cp README.md LICENSE.MIT LICENSE.GPL build/ci/SerialTest.app/Contents/Resources/
+          macdeployqt build/ci/SerialTest.app -dmg
+          mv build/ci/SerialTest.dmg ./SerialTest-macOS-arm64.dmg
+
+      - name: Upload macOS Artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: SerialTest-macOS-arm64
+          path: ./SerialTest-macOS-arm64.dmg
+          retention-days: 7
+          if-no-files-found: error
+
+  build-linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v5
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libgl1-mesa-dev libxkbcommon-dev libegl1-mesa-dev
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install aqt and query Qt
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install "git+https://github.com/miurahr/aqtinstall.git@${{ env.AQT_INSTALL_COMMIT }}"
+          python --version
+          python -m aqt version
+          python -m aqt list-qt linux desktop --arch ${{ env.QT_VERSION }}
+          python -m aqt list-qt linux desktop --modules ${{ env.QT_VERSION }} gcc_64
+
+      - name: Install Qt
+        run: |
+          QT_DIR="$HOME/Qt"
+          python -m aqt install-qt linux desktop ${{ env.QT_VERSION }} gcc_64 \
+            --outputdir "$QT_DIR" \
+            --modules qt5compat qtserialport qtconnectivity
+          QT_BIN="$QT_DIR/${{ env.QT_VERSION }}/gcc_64/bin"
+          echo "$QT_BIN" >> $GITHUB_PATH
+          echo "Qt6_DIR=$QT_DIR/${{ env.QT_VERSION }}/gcc_64/lib/cmake/Qt6" >> $GITHUB_ENV
+          echo "QT_ROOT_DIR=$QT_DIR/${{ env.QT_VERSION }}/gcc_64" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$QT_DIR/${{ env.QT_VERSION }}/gcc_64/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+
+      - name: Log toolchain info
+        run: |
+          qmake -v
+          gcc --version
+          uname -m
+
+      - name: Build
+        run: |
+          mkdir -p build/ci
+          cd build/ci
+          qmake ../../src/SerialTest.pro CONFIG+=release
+          make -j2
+
+      - name: Package
+        run: |
+          mkdir -p package/linux/SerialTest
+          cp build/ci/SerialTest package/linux/SerialTest/
+          cp README.md LICENSE.MIT LICENSE.GPL package/linux/SerialTest/
+          tar -czf SerialTest-Ubuntu-24.04-x86_64.tar.gz -C package/linux SerialTest
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: SerialTest-Ubuntu-24.04-x86_64
+          path: ./SerialTest-Ubuntu-24.04-x86_64.tar.gz
+          retention-days: 7
+          if-no-files-found: error

@@ -5,6 +5,7 @@ CONFIG += c++17
 
 macx {
     QMAKE_MACOSX_DEPLOYMENT_TARGET = 26.0
+    QMAKE_APPLE_DEVICE_ARCHS = arm64
 }
 
 win32-msvc*: {
