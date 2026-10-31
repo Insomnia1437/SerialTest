@@ -177,19 +177,20 @@ jobs:
           python --version
           python -m aqt version
           python -m aqt list-qt linux desktop --arch ${{ env.QT_VERSION }}
-          python -m aqt list-qt linux desktop --modules ${{ env.QT_VERSION }} gcc_64
+          python -m aqt list-qt linux desktop --modules ${{ env.QT_VERSION }} linux_gcc_64
 
       - name: Install Qt
         run: |
           QT_DIR="$HOME/Qt"
-          python -m aqt install-qt linux desktop ${{ env.QT_VERSION }} gcc_64 \
+          python -m aqt install-qt linux desktop ${{ env.QT_VERSION }} linux_gcc_64 \
             --outputdir "$QT_DIR" \
             --modules qt5compat qtserialport qtconnectivity
-          QT_BIN="$QT_DIR/${{ env.QT_VERSION }}/gcc_64/bin"
+          QT_BIN=$(find "$QT_DIR/${{ env.QT_VERSION }}" -maxdepth 2 -type d -name "bin" | head -n 1)
+          QT_ROOT=$(dirname "$QT_BIN")
           echo "$QT_BIN" >> $GITHUB_PATH
-          echo "Qt6_DIR=$QT_DIR/${{ env.QT_VERSION }}/gcc_64/lib/cmake/Qt6" >> $GITHUB_ENV
-          echo "QT_ROOT_DIR=$QT_DIR/${{ env.QT_VERSION }}/gcc_64" >> $GITHUB_ENV
-          echo "LD_LIBRARY_PATH=$QT_DIR/${{ env.QT_VERSION }}/gcc_64/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          echo "Qt6_DIR=$QT_ROOT/lib/cmake/Qt6" >> $GITHUB_ENV
+          echo "QT_ROOT_DIR=$QT_ROOT" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$QT_ROOT/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
       - name: Log toolchain info
         run: |
