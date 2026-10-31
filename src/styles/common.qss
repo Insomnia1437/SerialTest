@@ -132,3 +132,16 @@ QSplitter::handle:vertical {
     height: 6px;
 }
 
+/* GroupBox margin relative to font size for high-DPI / custom fonts */
+QGroupBox {
+    margin-top: 1.4em;
+    padding-top: 0.4em;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 0 4px;
+}
+
+
