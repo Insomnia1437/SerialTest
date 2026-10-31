@@ -27,7 +27,7 @@ void AdaptiveStackedWidget::removeWidget(QWidget *widget)
 {
     QStackedWidget::removeWidget(widget);
     m_horizontalPolicy.remove(widget);
-    m_horizontalPolicy.remove(widget);
+    m_verticalPolicy.remove(widget);
 }
 
 void AdaptiveStackedWidget::setCurrentIndex(int index)
@@ -50,8 +50,8 @@ void AdaptiveStackedWidget::setCurrentWidgetPolicy()
     if(!widget)
         return;
     widget->setSizePolicy(m_horizontalPolicy[widget], m_verticalPolicy[widget]);
-    widget->adjustSize();
-    adjustSize();
+    widget->updateGeometry();
+    updateGeometry();
 }
 
 void AdaptiveStackedWidget::setNewWidgetPolicy(QWidget *widget)

@@ -6,6 +6,8 @@
 #include <QDir>
 #include <QDockWidget>
 #include <QPushButton>
+#include <QComboBox>
+#include <QStackedWidget>
 
 #include "mainwindow.h"
 #include "mysettings.h"
@@ -90,6 +92,28 @@ private slots:
         QTest::qWait(50);
     }
 
+    void testProtocolSwitch()
+    {
+        m_window->showUpTab(0);
+        QTest::qWait(50);
+        QComboBox* typeBox = m_window->findChild<QComboBox*>("typeBox");
+        QVERIFY(typeBox != nullptr);
+        QStackedWidget* targetListStack = m_window->findChild<QStackedWidget*>("targetListStack");
+        QStackedWidget* argsStack = m_window->findChild<QStackedWidget*>("argsStack");
+        QVERIFY(targetListStack != nullptr);
+        QVERIFY(argsStack != nullptr);
+
+        for(int i = 0; i < typeBox->count(); ++i)
+        {
+            typeBox->setCurrentIndex(i);
+            QTest::qWait(50);
+            QVERIFY(targetListStack->currentWidget() != nullptr);
+            QVERIFY(argsStack->currentWidget() != nullptr);
+        }
+        typeBox->setCurrentIndex(0);
+        QTest::qWait(50);
+    }
+
     void captureScreenshots()
     {
         if(m_screenshotDir.isEmpty())
@@ -123,6 +147,33 @@ private slots:
             QString fileName = QString("%1_page%2.png").arg(prefix, pageNames[i]);
             QString filePath = QDir(m_screenshotDir).filePath(fileName);
             pixmap.save(filePath, "PNG");
+
+            if(i == 0)
+            {
+                QStackedWidget* targetListStack = m_window->findChild<QStackedWidget*>("targetListStack");
+                QStackedWidget* argsStack = m_window->findChild<QStackedWidget*>("argsStack");
+                QWidget* bleListPage = m_window->findChild<QWidget*>("BLECentralListPage");
+                QWidget* bleArgsPage = m_window->findChild<QWidget*>("BLECentralArgsPage");
+                QWidget* spListPage = m_window->findChild<QWidget*>("SPListPage");
+                QWidget* spArgsPage = m_window->findChild<QWidget*>("SPArgsPage");
+                if(targetListStack && argsStack && bleListPage && bleArgsPage)
+                {
+                    targetListStack->setCurrentWidget(bleListPage);
+                    argsStack->setCurrentWidget(bleArgsPage);
+                    QTest::qWait(100);
+                    QApplication::processEvents();
+                    QPixmap blePixmap = m_window->grab();
+                    QString bleFileName = QString("%1_page0_ble_preview.png").arg(prefix);
+                    blePixmap.save(QDir(m_screenshotDir).filePath(bleFileName), "PNG");
+
+                    if(spListPage && spArgsPage)
+                    {
+                        targetListStack->setCurrentWidget(spListPage);
+                        argsStack->setCurrentWidget(spArgsPage);
+                        QTest::qWait(50);
+                    }
+                }
+            }
         }
     }
 

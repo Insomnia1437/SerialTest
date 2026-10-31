@@ -295,13 +295,22 @@ void DeviceTab::getBondedTarget(bool isBLE)
 
 void DeviceTab::initUI()
 {
+    ui->horizontalLayout_2->setStretch(0, 1);
+    ui->horizontalLayout_2->setStretch(1, 0);
+
     ui->SP_portList->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->SP_portList->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     ui->BTClient_deviceList->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->BTClient_deviceList->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     ui->BTServer_deviceList->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->BTServer_deviceList->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     ui->BLEC_deviceList->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->BLEC_deviceList->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     ui->BLEC_UUIDList->header()->setStretchLastSection(false); // when stretchLastSection is true, sectionResizeMode will be ignored
     ui->BLEC_UUIDList->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->BLEC_UUIDList->header()->setSectionResizeMode(0, QHeaderView::Stretch);
     ui->Net_addrPortList->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->Net_addrPortList->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
 
     ui->SP_flowControlBox->addItem(tr("NoFlowControl"), QSerialPort::NoFlowControl);
     ui->SP_flowControlBox->addItem(tr("HardwareControl"), QSerialPort::HardwareControl);

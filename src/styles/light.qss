@@ -137,3 +137,13 @@ QPushButton:disabled {
     background-color: #f9f9f9;
     border-color: #e0e0e5;
 }
+
+/* Splitter */
+QSplitter::handle {
+    background-color: #d8d8dd;
+}
+
+QSplitter::handle:hover {
+    background-color: #007acc;
+}
+

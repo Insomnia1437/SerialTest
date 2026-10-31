@@ -10,7 +10,7 @@
     <height>437</height>
    </rect>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_2">
+  <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,0">
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
@@ -322,24 +322,8 @@
          </property>
          <item>
           <widget class="QSplitter" name="BLECentralListSplitter">
-           <property name="styleSheet">
-            <string notr="true">QSplitter::handle {background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-  stop:0 rgba(255, 255, 255, 0), 
-  stop:0.25 rgba(255, 255, 255, 0), 
-  stop:0.26 dimgray, stop:0.35 dimgray,
-  stop:0.36 white, stop:0.45 white,
-  stop:0.46 rgba(255, 255, 255, 0),
-  stop:0.54 rgba(255, 255, 255, 0),
-  stop:0.55 white, stop:0.64 white,
-  stop:0.65 dimgray, stop:0.74 dimgray,
-  stop:0.75 rgba(255, 255, 255, 0), 
-  stop:1 rgba(255, 255, 255, 0));
-margin-top:3em;
-margin-bottom:3em;
-}</string>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
            </property>
            <property name="handleWidth">
             <number>10</number>
@@ -568,7 +552,7 @@ margin-bottom:3em;
    <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -586,7 +570,7 @@ margin-bottom:3em;
          <number>2</number>
         </property>
         <widget class="QWidget" name="SPArgsPage">
-         <layout class="QGridLayout" name="gridLayout">
+         <layout class="QVBoxLayout" name="verticalLayout_SPArgs">
           <property name="leftMargin">
            <number>0</number>
           </property>
@@ -599,199 +583,269 @@ margin-bottom:3em;
           <property name="bottomMargin">
            <number>0</number>
           </property>
-          <item row="1" column="0">
-           <widget class="QLabel" name="SP_baudRateLabel">
-            <property name="text">
-             <string>BaudRate:</string>
+          <item>
+           <widget class="QScrollArea" name="SP_argsScrollArea">
+            <property name="frameShape">
+             <enum>QFrame::NoFrame</enum>
             </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QLabel" name="SP_flowControlLabel">
-            <property name="text">
-             <string>FlowControl:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="SP_portNameLabel">
-            <property name="text">
-             <string>Port:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QComboBox" name="SP_parityBox">
-            <property name="sizeAdjustPolicy">
-             <enum>QComboBox::AdjustToContents</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="SP_dataBitsLabel">
-            <property name="text">
-             <string>DataBits:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QComboBox" name="SP_baudRateBox">
-            <property name="editable">
+            <property name="widgetResizable">
              <bool>true</bool>
             </property>
-            <property name="currentIndex">
-             <number>3</number>
-            </property>
-            <property name="sizeAdjustPolicy">
-             <enum>QComboBox::AdjustToContents</enum>
-            </property>
-            <item>
-             <property name="text">
-              <string notr="true">1200</string>
+            <widget class="QWidget" name="SP_scrollAreaWidgetContents">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>320</width>
+               <height>350</height>
+              </rect>
              </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">2400</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">4800</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">9600</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">19200</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">38400</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">57600</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">76800</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">115200</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">128000</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">230400</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">256000</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">460800</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">512000</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">576000</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">921600</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="5" column="1">
-           <widget class="QComboBox" name="SP_flowControlBox">
-            <property name="sizeAdjustPolicy">
-             <enum>QComboBox::AdjustToContents</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="SP_parityLabel">
-            <property name="text">
-             <string>Parity:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QComboBox" name="SP_dataBitsBox">
-            <property name="editable">
-             <bool>false</bool>
-            </property>
-            <property name="currentIndex">
-             <number>-1</number>
-            </property>
-            <property name="sizeAdjustPolicy">
-             <enum>QComboBox::AdjustToContents</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QComboBox" name="SP_stopBitsBox">
-            <property name="editable">
-             <bool>false</bool>
-            </property>
-            <property name="sizeAdjustPolicy">
-             <enum>QComboBox::AdjustToContents</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="SP_portNameBox">
-            <property name="editable">
-             <bool>true</bool>
-            </property>
-            <property name="sizeAdjustPolicy">
-             <enum>QComboBox::AdjustToContents</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="0">
-           <spacer name="verticalSpacer">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="SP_stopBitsLabel">
-            <property name="text">
-             <string>StopBits:</string>
-            </property>
+             <layout class="QGridLayout" name="gridLayout" columnstretch="0,1">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="QLabel" name="SP_portNameLabel">
+                <property name="text">
+                 <string>Port:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="SP_portNameBox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="editable">
+                 <bool>true</bool>
+                </property>
+                <property name="sizeAdjustPolicy">
+                 <enum>QComboBox::AdjustToContents</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="SP_baudRateLabel">
+                <property name="text">
+                 <string>BaudRate:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="SP_baudRateBox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="editable">
+                 <bool>true</bool>
+                </property>
+                <property name="currentIndex">
+                 <number>3</number>
+                </property>
+                <property name="sizeAdjustPolicy">
+                 <enum>QComboBox::AdjustToContents</enum>
+                </property>
+                <item>
+                 <property name="text">
+                  <string notr="true">1200</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string notr="true">2400</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string notr="true">4800</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string notr="true">9600</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string notr="true">19200</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string notr="true">38400</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string notr="true">57600</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string notr="true">76800</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string notr="true">115200</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string notr="true">128000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string notr="true">230400</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string notr="true">256000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string notr="true">460800</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string notr="true">512000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string notr="true">576000</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string notr="true">921600</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="SP_dataBitsLabel">
+                <property name="text">
+                 <string>DataBits:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QComboBox" name="SP_dataBitsBox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="editable">
+                 <bool>false</bool>
+                </property>
+                <property name="currentIndex">
+                 <number>-1</number>
+                </property>
+                <property name="sizeAdjustPolicy">
+                 <enum>QComboBox::AdjustToContents</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="SP_stopBitsLabel">
+                <property name="text">
+                 <string>StopBits:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QComboBox" name="SP_stopBitsBox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="editable">
+                 <bool>false</bool>
+                </property>
+                <property name="sizeAdjustPolicy">
+                 <enum>QComboBox::AdjustToContents</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="SP_parityLabel">
+                <property name="text">
+                 <string>Parity:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QComboBox" name="SP_parityBox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="sizeAdjustPolicy">
+                 <enum>QComboBox::AdjustToContents</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="SP_flowControlLabel">
+                <property name="text">
+                 <string>FlowControl:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QComboBox" name="SP_flowControlBox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="sizeAdjustPolicy">
+                 <enum>QComboBox::AdjustToContents</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="0" colspan="2">
+               <spacer name="verticalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
            </widget>
           </item>
          </layout>

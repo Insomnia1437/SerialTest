@@ -122,3 +122,13 @@ QAbstractSpinBox::up-arrow, QAbstractSpinBox::down-arrow {
     width: 10px;
     height: 10px;
 }
+
+/* Splitters */
+QSplitter::handle:horizontal {
+    width: 6px;
+}
+
+QSplitter::handle:vertical {
+    height: 6px;
+}
+
